@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     ssigaction(SIGALRM, endServerHandler);
 
     sockfd = initSocketServer(SERVER_PORT);
-    printf("Le serveur tourne sur le port : %i \n", SERVER_PORT);
+    printf("Le serveur tourne sur le port : %i...\n", SERVER_PORT);
 
     i = 0;
     int nbPLayers = 0;
@@ -108,7 +108,8 @@ int main(int argc, char **argv)
     }
 
     printf("FIN DES INSCRIPTIONS\n");
-    if (nbPLayers != MAX_PLAYERS)
+
+    if (nbPLayers < 2)
     {
         printf("PARTIE ANNULEE .. PAS ASSEZ DE JOUEURS\n");
         msg.code = PARTIE_ANNULEE;
@@ -123,9 +124,22 @@ int main(int argc, char **argv)
     else
     {
         printf("PARTIE VA DEMARRER ... \n");
-        msg.code = INSCRIPTION_OK;
+    
+        pid_t pid;
         for (i = 0; i < nbPLayers; i++)
+        {
             swrite(tabPlayers[i].sockfd, &msg, sizeof(msg));
+
+            pid = sfork();
+
+            if (pid == 0)
+            {
+                printf("Child process for player %d: PID=%d\n", i + 1, getpid());
+                // Here you can put the code that each player process should execute
+                return 0;
+            }
+        }
+        msg.code = PARTIE_LANCEE;
     }
 
     // GAME PART
@@ -160,7 +174,7 @@ int main(int argc, char **argv)
 
                 if (ret != 0)
                 {
-                    tabPlayers[i].shot = msg.code;
+                    // tabPlayers[i].shot = msg.code;
                     printf("%s joue %s\n", tabPlayers[i].pseudo, codeToStr(msg.code));
                     nbPlayersAlreadyPlayed++;
                 }

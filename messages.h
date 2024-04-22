@@ -19,7 +19,7 @@ typedef enum
 } Code;
 
 /* struct message used between server and client */
-typedef struct
+typedef struct StructMessage
 {
   char messageText[MAX_PSEUDO];
   int code;
