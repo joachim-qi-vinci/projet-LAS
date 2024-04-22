@@ -5,19 +5,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "messages.h"
 #include "utils_v1.h"
-
-#define MAX_PLAYERS 2
-#define BACKLOG 5
-#define TIME_INSCRIPTION 15
-
-typedef struct Player
-{
-    char pseudo[MAX_PSEUDO];
-    int sockfd;
-    int shot;
-} Player;
+#include "server.h"
+#include "messages.h"
 
 /*** globals variables ***/
 Player tabPlayers[MAX_PLAYERS];
@@ -32,42 +22,6 @@ void disconnect_players(Player *tabPlayers, int nbPlayers)
 {
     for (int i = 0; i < nbPlayers; i++)
         sclose(tabPlayers[i].sockfd);
-    return;
-}
-
-char *codeToStr(int code)
-{
-    if (code == PAPIER)
-        return "PAPIER";
-    if (code == PIERRE)
-        return "PIERRE";
-    if (code == CISEAUX)
-        return "CISEAUX";
-    return "???";
-}
-
-void winner(Player p1, Player p2, char *winner)
-{
-    if ((p1.shot == PAPIER) && (p2.shot == PAPIER))
-        strcpy(winner, "EGALITE");
-    if ((p1.shot == PAPIER) && (p2.shot == CISEAUX))
-        strcpy(winner, p2.pseudo);
-    if ((p1.shot == PAPIER) && (p2.shot == PIERRE))
-        strcpy(winner, p1.pseudo);
-
-    if ((p1.shot == PIERRE) && (p2.shot == PAPIER))
-        strcpy(winner, p2.pseudo);
-    if ((p1.shot == PIERRE) && (p2.shot == CISEAUX))
-        strcpy(winner, p1.pseudo);
-    if ((p1.shot == PIERRE) && (p2.shot == PIERRE))
-        strcpy(winner, "EGALITE");
-
-    if ((p1.shot == CISEAUX) && (p2.shot == PAPIER))
-        strcpy(winner, p1.pseudo);
-    if ((p1.shot == CISEAUX) && (p2.shot == CISEAUX))
-        strcpy(winner, "EGALITE");
-    if ((p1.shot == CISEAUX) && (p2.shot == PIERRE))
-        strcpy(winner, p2.pseudo);
     return;
 }
 
@@ -157,7 +111,7 @@ int main(int argc, char **argv)
     if (nbPLayers != MAX_PLAYERS)
     {
         printf("PARTIE ANNULEE .. PAS ASSEZ DE JOUEURS\n");
-        msg.code = CANCEL_GAME;
+        msg.code = PARTIE_ANNULEE;
         for (i = 0; i < nbPLayers; i++)
         {
             swrite(tabPlayers[i].sockfd, &msg, sizeof(msg));
@@ -169,7 +123,7 @@ int main(int argc, char **argv)
     else
     {
         printf("PARTIE VA DEMARRER ... \n");
-        msg.code = START_GAME;
+        msg.code = INSCRIPTION_OK;
         for (i = 0; i < nbPLayers; i++)
             swrite(tabPlayers[i].sockfd, &msg, sizeof(msg));
     }
