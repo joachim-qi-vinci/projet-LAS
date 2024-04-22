@@ -4,15 +4,20 @@
 #include <bool.h>
 
 /**
- * Create a table with chars from 1 to 30 where 11 to 19 is
+ * Create the table with chars from 1 to 30 where 11 to 19 is
  * present two times
 **/
-char* createTilesTab();
+void createTilesTab();
+
+/**
+ * Create the game plateau
+**/
+void createPlateau();
 
 /**
  * Return a random element in the table and remove it
 **/
-char* drawTile(char* tilesTab);
+int drawTile();
 
 /**
  * Place a tile in the table
@@ -20,14 +25,24 @@ char* drawTile(char* tilesTab);
 bool placeTile(int position, int tile);
 
 /**
+ * Calculate the score of the plateau
+**/
+int calculateScore();
+
+/**
  * Send score to server
 **/
 void sendScore(int score);
 
+/**
+ * Sort the scores
+ * playerTab is the adress of a table
+ * playertab is sorted
+**/
+void sortTabScores(Player* playerTab);
 
 /**
- * 
+ * Free the tiles and plateau
 **/
-Player* sortTabScores();
-
+void closeGame();
 #endif
