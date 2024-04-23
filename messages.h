@@ -1,7 +1,6 @@
 #ifndef _MESSAGES_H_
 #define _MESSAGES_H_
 
-#define SERVER_PORT 9500
 #define SERVER_IP "127.0.0.1" /* localhost */
 #define MAX_PSEUDO 256
 
