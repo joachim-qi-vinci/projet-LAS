@@ -2,4 +2,4 @@
 .vscode/settings.json
 
 *.o
-./server
+server
