@@ -380,7 +380,6 @@ void hostname_to_ip (char * hostname, char* ip);
 //       value  of 0 indicates that the call timed out and no file descriptors were ready.
 int spoll(struct pollfd *fds, nfds_t nfds, int timeout);
 
+char **readFileToTable(int fd);
+
 #endif  // _UTILS_H_
-
-
-

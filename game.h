@@ -9,6 +9,12 @@
 **/
 void createTilesTab();
 
+
+/**
+ * Read the file and create the tiles table
+*/
+void readAndCreateTilesTab(char* filename);
+
 /**
  * Create the game plateau
 **/
@@ -28,6 +34,12 @@ bool placeTile(int position, int tile);
  * Calculate the score of the plateau
 **/
 int calculateScore();
+
+
+/**
+ * Disable the random draw
+*/
+void disableRandomDraw();
 
 /**
  * Send score to server

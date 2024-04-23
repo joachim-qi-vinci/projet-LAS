@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdlib.h>  
+#include <fcntl.h> 
 
 
 #include "game.h"
@@ -12,6 +13,12 @@ int* plateau = NULL;
 int* tiles = NULL;
 int tilesLeft = 40;
 
+bool doRandomDraw = true;
+
+
+void disableRandomDraw(){
+    doRandomDraw = false;
+}
 /**
  * Create a table with chars from 1 to 30 where 11 to 19 is
  * present two times
@@ -42,11 +49,26 @@ void createPlateau(){
     plateau = malloc(PLATEAU_LENGTH * sizeof(int));
 }
 
+void readAndCreateTilesTab(char* filename){
+    int file = sopen(filename, O_RDONLY, 0);
+    char** lines = readFileToTable(file);
+    if(lines == NULL) return;
+    tiles = malloc(tilesLeft * sizeof(int));
+    int index = 0;
+    for(int i = 0; lines[i] != NULL; i++){
+        tiles[index] = atoi(lines[i]);
+        free(lines[i]);
+        index++;
+    }
+    free(lines);
+    sclose(file);
+}
+
 /**
  * Return a random element in the table and remove it
 **/
 int drawTile(){
-    int index = randomIntBetween(0, tilesLeft);
+    int index = doRandomDraw ? 0 : randomIntBetween(0, tilesLeft);
     int tile = tiles[index];
     for(int i = index; i < tilesLeft-1; i++){
         tiles[i] = tiles[i+1];  

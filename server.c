@@ -54,10 +54,14 @@ int initSocketServer(int port)
 
 int main(int argc, char **argv)
 {
-    if(argc != 2){
-        printf("Usage: %s <port>\n", argv[0]);
+    if(argc < 2){
+        printf("Usage: %s <port> [fichierDeTuiles]\n", argv[0]);
         return(0);
     }
+    if(argc == 3){
+        disableRandomDraw();
+        readAndCreateTilesTab(argv[2]);
+    } 
     int SERVER_PORT = atoi(argv[1]);
     int sockfd, newsockfd, i;
     StructMessage msg;
