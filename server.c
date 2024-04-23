@@ -8,6 +8,7 @@
 #include "utils_v1.h"
 #include "server.h"
 #include "messages.h"
+#include "game.h" 
 
 /*** globals variables ***/
 Player tabPlayers[MAX_PLAYERS];
@@ -175,14 +176,16 @@ int main(int argc, char **argv)
                 if (ret != 0)
                 {
                     // tabPlayers[i].shot = msg.code;
-                    printf("%s joue %s\n", tabPlayers[i].pseudo, codeToStr(msg.code));
+                    // TODO: Changement de type (voir erreur lors du make)
+                    // printf("%s joue %s\n", tabPlayers[i].pseudo, codeToStr(msg.code));
                     nbPlayersAlreadyPlayed++;
                 }
             }
         }
     }
 
-    winner(tabPlayers[0], tabPlayers[1], winnerName);
+    // TODO
+    // winner(tabPlayers[0], tabPlayers[1], winnerName);
     printf("GAGNANT : %s\n", winnerName);
     disconnect_players(tabPlayers, nbPLayers);
     sclose(sockfd);

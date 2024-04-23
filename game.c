@@ -1,7 +1,10 @@
-#include <stdbool.h> 
+#include <stdbool.h>
+#include <stdlib.h>  
+
 
 #include "game.h"
-#include "utils.h"
+#include "utils_v1.h"
+
 
 #define PLATEAU_LENGTH 20
 
@@ -49,6 +52,7 @@ int drawTile(){
         tiles[i] = tiles[i+1];  
     }
     tilesLeft--;
+    return tile;
 }
 
 /**
@@ -95,13 +99,13 @@ int calculateScore(){
 }
 
 void sendScore(){
-    int score = calculateScore();
+    // TODO: Utiliser network pour envoyer le score
+    // int score = calculateScore();
 }
 
-void sortTabScore(Player** players){
-    int n = sizeof(players) / sizeof(players[0]);
-    for (int i = 0; i < n-1; i++){
-        for (int j = 0; j < n-i-1; j++){
+void sortTabScore(Player** players, int size){
+    for (int i = 0; i < size-1; i++){
+        for (int j = 0; j < size-i-1; j++){
           if (players[j]->score < players[j+1]->score){
             Player* temp = players[j];
             players[j] = players[j+1];

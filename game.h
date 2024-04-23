@@ -1,8 +1,8 @@
 #ifndef _GAME_H_
 #define _GAME_H_
 
-#include <bool.h>
-
+#include <stdbool.h>
+#include "messages.h"  
 /**
  * Create the table with chars from 1 to 30 where 11 to 19 is
  * present two times
@@ -32,7 +32,7 @@ int calculateScore();
 /**
  * Send score to server
 **/
-void sendScore(int score);
+void sendScore();
 
 /**
  * Sort the scores

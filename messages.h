@@ -25,4 +25,11 @@ typedef struct StructMessage
   int code;
 } StructMessage;
 
+typedef struct Player
+{
+    int score;
+    char pseudo[MAX_PSEUDO];
+    int sockfd;
+} Player;
+
 #endif

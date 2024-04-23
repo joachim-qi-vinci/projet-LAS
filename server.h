@@ -4,18 +4,12 @@
 
 #include "messages.h"
 
+
+
 #define MAX_PLAYERS 15
 #define BACKLOG 5
 #define TIME_INSCRIPTION 30
 
-
-
-typedef struct Player
-{
-    int score;
-    char pseudo[MAX_PSEUDO];
-    int sockfd;
-} Player;
 
 /**
  * init server
@@ -33,4 +27,4 @@ void endServerHandler(int sig);
 void disconnect_players(Player *tabPlayers, int nbPlayers);
 
 
-#endif;
+#endif
