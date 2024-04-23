@@ -59,7 +59,6 @@ int main(int argc, char **argv)
         return(0);
     }
     if(argc == 3){
-        disableRandomDraw();
         readAndCreateTilesTab(argv[2]);
     } 
     int SERVER_PORT = atoi(argv[1]);

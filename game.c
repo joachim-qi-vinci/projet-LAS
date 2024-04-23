@@ -50,6 +50,7 @@ void createPlateau(){
 }
 
 void readAndCreateTilesTab(char* filename){
+    disableRandomDraw();
     int file = sopen(filename, O_RDONLY, 0);
     char** lines = readFileToTable(file);
     if(lines == NULL) return;
