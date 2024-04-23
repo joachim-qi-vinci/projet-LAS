@@ -18,6 +18,9 @@ utils_v1.o: utils_v1.c utils_v1.h
 game.o: game.c game.h utils_v1.h messages.h
 	$(CC) $(CCFLAGS) -c game.c
 
+ipc.o: ipc.c ipc.h utils_v1.h
+	$(CC) $(CCFLAGS) -c ipc.c
+
 clean:
 	rm -f *.o
 	rm -f $(ALL)
