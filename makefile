@@ -2,9 +2,15 @@ CC=gcc
 
 CCFLAGS=-D_DEFAULT_SOURCE -D_XOPEN_SOURCE -D_BSD_SOURCE -std=c11 -pedantic -Wvla -Wall -Werror
 
-ALL= server
+ALL= server client
 
 all: $(ALL)
+
+client: client.o utils_v1.o ipc.o network.o
+	$(CC) $(CCFLAGS) -o client client.o utils_v1.o ipc.o network.o
+
+client.o: client.c client.h messages.h
+	$(CC) $(CCFLAGS) -c client.c
 
 server : server.o utils_v1.o game.o
 	$(CC) $(CCFLAGS) -o server server.o utils_v1.o game.o

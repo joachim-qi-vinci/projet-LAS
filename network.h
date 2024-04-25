@@ -1,5 +1,6 @@
 #ifndef _NETWORK_H_
 #define _NETWORK_H_
+#define SERVER_IP "127.0.0.1" 
 
 #include <stdlib.h>
 #include <string.h>
@@ -19,5 +20,7 @@ void disconnect_players(Player *tabPlayers, int nbPlayers);
  * RES:  return socket file descriptor
  */
 int initSocketServer(int port);
+
+int connectToServer(char* serverIP, int serverPort);
 
 #endif
