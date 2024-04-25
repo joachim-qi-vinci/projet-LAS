@@ -1,5 +1,5 @@
-<<<<<<< HEAD
 #include "utils_v1.h"
+#include "network.h"
 
 int connectToServer(char* serverIP, int serverPort)
 {
@@ -7,10 +7,6 @@ int connectToServer(char* serverIP, int serverPort)
     sconnect(serverIP, serverPort, sockfd);
     return sockfd;
 }
-=======
-#include "network.h"
-
-
 
 void disconnect_players(Player *tabPlayers, int nbPlayers)
 {
