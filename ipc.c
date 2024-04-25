@@ -1,12 +1,13 @@
-#include "utils_v1.h"
+#include <stdlib.h>
 #include "ipc.h"
 
 int shm_id;
 int sem_id;
+Player* tabPlayer;
 
 
 void createScores(int nbr_player) {
-    Player[nbr_player] tabPlayer;
+    tabPlayer = (Player*) malloc(nbr_player * sizeof(Player));
     shm_id = sshmget(SHM_KEY,sizeof(tabPlayer), IPC_CREAT | PERM);
     sem_id = sem_create(SEM_KEY, 1, PERM, 0);
 }
@@ -23,4 +24,5 @@ void placeScore(Player player, int logical_size) {
 void closeIPC() {
     sshmdelete(shm_id);
     sem_delete(sem_id);
+    free(tabPlayer);
 }
