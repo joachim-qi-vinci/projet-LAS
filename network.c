@@ -1,4 +1,8 @@
-void endServerHandler(int sig)
+#include "utils_v1.h"
+
+int connectToServer(char* serverIP, int serverPort)
 {
-    end_inscriptions = 1;
+    int sockfd = ssocket();
+    sconnect(serverIP, serverPort, sockfd);
+    return sockfd;
 }
