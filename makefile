@@ -12,11 +12,14 @@ client: client.o utils_v1.o ipc.o network.o
 client.o: client.c client.h messages.h
 	$(CC) $(CCFLAGS) -c client.c
 
-server : server.o utils_v1.o game.o
-	$(CC) $(CCFLAGS) -o server server.o utils_v1.o game.o
+server : server.o utils_v1.o game.o network.o
+	$(CC) $(CCFLAGS) -o server server.o utils_v1.o game.o network.o
 
 server.o: server.c server.h
 	$(CC) $(CCFLAGS) -c server.c
+
+network.o: network.c network.h
+	$(CC) $(CCFLAGS) -c network.c
 
 utils_v1.o: utils_v1.c utils_v1.h
 	$(CC) $(CCFLAGS) -c utils_v1.c

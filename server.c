@@ -1,4 +1,5 @@
 #include "server.h"
+#include "network.h"
 
 /*** globals variables ***/
 Player tabPlayers[MAX_PLAYERS];
@@ -9,38 +10,6 @@ void endServerHandler(int sig)
     end_inscriptions = 1;
 }
 
-void disconnect_players(Player *tabPlayers, int nbPlayers)
-{
-    for (int i = 0; i < nbPlayers; i++)
-        sclose(tabPlayers[i].sockfd);
-    return;
-}
-
-/**
- * PRE:  serverPort: a valid port number
- * POST: on success, binds a socket to 0.0.0.0:serverPort and listens to it ;
- *       on failure, displays error cause and quits the program
- * RES:  return socket file descriptor
- */
-int initSocketServer(int port)
-{
-    int sockfd = ssocket();
-
-    /* no socket error */
-
-    // setsockopt -> to avoid Address Already in Use
-    // to do before bind !
-    int option = 1;
-    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int));
-
-    sbind(port, sockfd);
-
-    /* no bind error */
-    slisten(sockfd, BACKLOG);
-
-    /* no listen error */
-    return sockfd;
-}
 
 int main(int argc, char **argv)
 {
@@ -66,7 +35,7 @@ int main(int argc, char **argv)
     i = 0;
     int nbPLayers = 0;
 
-    // INSCRIPTION PART
+    // PARTIE INSCRIPTION 
     alarm(TIME_INSCRIPTION);
 
     while (!end_inscriptions)

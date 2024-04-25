@@ -7,10 +7,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <signal.h>
 
 #include "server.h"
 #include "messages.h"
+#include "utils_v1.h"
 
 void disconnect_players(Player *tabPlayers, int nbPlayers);
 /**
