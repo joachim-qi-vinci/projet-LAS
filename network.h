@@ -1,6 +1,14 @@
 #ifndef _NETWORK_H_
 #define _NETWORK_H_
 
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <signal.h>
+
+#include "server.h"
 #include "messages.h"
 
 void disconnect_players(Player *tabPlayers, int nbPlayers);
