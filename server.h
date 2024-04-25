@@ -2,9 +2,18 @@
 #define _SERVER_H_
 
 
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
 #include "messages.h"
-
-
+#include "utils_v1.h"
+#include "messages.h"
+#include "game.h" 
 
 #define MAX_PLAYERS 15
 #define BACKLOG 5
