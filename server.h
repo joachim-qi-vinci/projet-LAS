@@ -12,7 +12,6 @@
 
 #include "messages.h"
 #include "utils_v1.h"
-#include "messages.h"
 #include "game.h" 
 
 #define MAX_PLAYERS 15
