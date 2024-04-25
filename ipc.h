@@ -9,7 +9,7 @@
 #define SEM_KEY 465
 #define SHM_KEY 978
 
-int createScoresTab(int nbr_player);
+void createScoresTab(int nbr_player);
 
 void placeScore(Player player, int logical_size);
 
