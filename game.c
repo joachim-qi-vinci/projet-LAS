@@ -24,8 +24,8 @@ void disableRandomDraw(){
  * present two times
 **/
 void createTilesTab() {
-    tiles = malloc(tilesLeft * sizeof(int));
-    int index = 0;
+    tiles = smalloc(tilesLeft * sizeof(int));
+   int index = 0;
 
     for(int i = 1; i <= 10; i++){ 
         tiles[index] = i;
@@ -46,7 +46,8 @@ void createTilesTab() {
 }
 
 void createPlateau(){
-    plateau = malloc(PLATEAU_LENGTH * sizeof(int));
+    plateau = smalloc(PLATEAU_LENGTH * sizeof(int));
+    
 }
 
 void readAndCreateTilesTab(char* filename){
@@ -54,7 +55,7 @@ void readAndCreateTilesTab(char* filename){
     int file = sopen(filename, O_RDONLY, 0);
     char** lines = readFileToTable(file);
     if(lines == NULL) return;
-    tiles = malloc(tilesLeft * sizeof(int));
+    tiles = smalloc(tilesLeft * sizeof(int));
     int index = 0;
     for(int i = 0; lines[i] != NULL; i++){
         tiles[index] = atoi(lines[i]);
