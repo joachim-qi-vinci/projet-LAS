@@ -40,7 +40,7 @@ int main(int argc, char const *argv[])
     while (1)
     {
         sread(sockfd, &msg, sizeof(msg));
-        if (msg.code = FIN_DE_PARTIE || msg.code == PARTIE_ANNULEE)
+        if (msg.code == FIN_DE_PARTIE || msg.code == PARTIE_ANNULEE)
         {
             break;
         }

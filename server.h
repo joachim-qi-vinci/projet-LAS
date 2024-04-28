@@ -12,7 +12,8 @@
 
 #include "messages.h"
 #include "utils_v1.h"
-#include "game.h" 
+#include "game.h"
+#include "ipc.h"
 
 #define MAX_PLAYERS 15
 #define BACKLOG 5
