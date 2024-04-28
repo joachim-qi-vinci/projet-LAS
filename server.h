@@ -16,7 +16,7 @@
 
 #define MAX_PLAYERS 15
 #define BACKLOG 5
-#define TIME_INSCRIPTION 30
+#define TIME_INSCRIPTION 10
 
 
 /**
