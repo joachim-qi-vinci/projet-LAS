@@ -93,7 +93,7 @@ int calculateScore(){
 
     int streak = 0;
     for(int i = 0; i < PLATEAU_LENGTH-1; i++){
-        if(plateau[i] < plateau[i+1]) streak++;
+        if(plateau[i] < plateau[i+1] || plateau[i] == -1) streak++;
         else {
             if(streak <= 1) score += 0;
             if(streak == 2) score += 1;
