@@ -70,7 +70,7 @@ void readAndCreateTilesTab(char* filename){
  * Return a random element in the table and remove it
 **/
 int drawTile(){
-    int index = doRandomDraw ? 0 : randomIntBetween(0, tilesLeft);
+    int index = doRandomDraw ? randomIntBetween(0, tilesLeft) : 0;
     int tile = tiles[index];
     for(int i = index; i < tilesLeft-1; i++){
         tiles[i] = tiles[i+1];  
@@ -89,36 +89,42 @@ bool placeTile(int position, int tile){
     return true;
 } 
 
+int scoreForStreak(int streak) {
+    if(streak <= 1) return 0;
+    if(streak == 2) return 1;
+    if(streak == 3) return 3;
+    if(streak == 4) return 5;
+    if(streak == 5) return 7;
+    if(streak == 6) return 9;
+    if(streak == 7) return 11;
+    if(streak == 8) return 15;
+    if(streak == 9) return 20;
+    if(streak == 10) return 25;
+    if(streak == 11) return 30;
+    if(streak == 12) return 35;
+    if(streak == 13) return 40;
+    if(streak == 14) return 50;
+    if(streak == 15) return 60;
+    if(streak == 16) return 70;
+    if(streak == 17) return 85;
+    if(streak == 18) return 100;
+    if(streak == 19) return 150;
+    return 300;
+}
+
 int calculateScore(){
     int score = 0;
+    int streak = 1;
 
-    int streak = 0;
-    for(int i = 0; i < PLATEAU_LENGTH-1; i++){
-        if(plateau[i] < plateau[i+1] || plateau[i] == -1) streak++;
-        else {
-            if(streak <= 1) score += 0;
-            if(streak == 2) score += 1;
-            if(streak == 3) score += 3;
-            if(streak == 4) score += 5;
-            if(streak == 5) score += 7;
-            if(streak == 6) score += 9;
-            if(streak == 7) score += 11;
-            if(streak == 8) score += 15;
-            if(streak == 9) score += 20;
-            if(streak == 10) score += 25;
-            if(streak == 11) score += 30;
-            if(streak == 12) score += 35;
-            if(streak == 13) score += 40;
-            if(streak == 14) score += 50;
-            if(streak == 15) score += 60;
-            if(streak == 16) score += 70;
-            if(streak == 17) score += 85;
-            if(streak == 18) score += 100;
-            if(streak == 19) score += 150;
-            if(score >= 20) score += 300;
-            streak = 0;
+    for(int i = 1; i < PLATEAU_LENGTH; i++){
+        if(plateau[i] >= plateau[i-1]) {
+            streak++;
+        } else {
+            score += scoreForStreak(streak);
+            streak = 1;
         }
     }
+    score += scoreForStreak(streak);
     return score;
 }
 
@@ -142,4 +148,11 @@ void sortTabScore(Player** players, int size){
 void closeGame(){
     if(tiles != NULL) free(tiles);
     if(plateau != NULL) free(plateau);
+}
+
+void displayPlateau(){
+    for(int i = 0; i < PLATEAU_LENGTH; i++){
+        printf("%d ", plateau[i]);
+    }
+    printf("\n");
 }
