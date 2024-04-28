@@ -12,12 +12,12 @@
 
 #include "messages.h"
 #include "utils_v1.h"
-#include "messages.h"
-#include "game.h" 
+#include "game.h"
+#include "ipc.h"
 
 #define MAX_PLAYERS 15
 #define BACKLOG 5
-#define TIME_INSCRIPTION 30
+#define TIME_INSCRIPTION 10
 
 
 /**
