@@ -104,7 +104,7 @@ int main(int argc, char **argv)
             {
                 printf("Child process for player %d: PID=%d\n", i + 1, getpid());
                 // Here you can put the code that each player process should execute
-                return 0;
+                printf("Player %d: %s\n", i + 1, tabPlayers[i].pseudo);
             }
         }
         msg.code = PARTIE_LANCEE;
