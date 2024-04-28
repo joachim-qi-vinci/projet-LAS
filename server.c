@@ -10,6 +10,11 @@ void endServerHandler(int sig)
     end_inscriptions = 1;
 }
 
+void childHandler()(Player player) {
+    sclose(player.pipefdServeur[0]);
+    sclose(player.pipefdClient[1]);
+}
+
 
 int main(int argc, char **argv)
 {
@@ -59,6 +64,7 @@ int main(int argc, char **argv)
                 {
                     msg.code = INSCRIPTION_OK;
                     nbPLayers++;
+
                     if (nbPLayers == MAX_PLAYERS)
                     {
                         alarm(0); // cancel alarm
@@ -92,23 +98,27 @@ int main(int argc, char **argv)
     else
     {
         printf("PARTIE VA DEMARRER ... \n");
-    
-        pid_t pid;
-        for (i = 0; i < nbPLayers; i++)
+
+        msg.code = PARTIE_LANCEE;
+        for (int i = 0; i < nbPLayers; i++)
         {
             swrite(tabPlayers[i].sockfd, &msg, sizeof(msg));
 
-            pid = sfork();
+            int pipefdServeur[2];
+            int pipefdClient[2];
+            tabPlayers[i].pipefdServeur = pipefdServeur[2];
+            tabPlayers[i].pipefdClient = pipefdClient[2];
+            spipe(pipefdServeur);
+            spipe(pipefdClient);
+            sclose(pipefdServeur[1]);
+            sclose(pipefdClient[0]);
 
-            if (pid == 0)
-            {
-                printf("Child process for player %d: PID=%d\n", i + 1, getpid());
-                // Here you can put the code that each player process should execute
-                printf("Player %d: %s\n", i + 1, tabPlayers[i].pseudo);
-            }
+            fork_and_run1(childHandler, tabPlayers[i]);
+
+            swrite(pipefdServeur[0], msg.code, sizeof(msg.code));
         }
-        msg.code = PARTIE_LANCEE;
     }
+
 
     // GAME PART
     int nbPlayersAlreadyPlayed = 0;
