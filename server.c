@@ -8,6 +8,8 @@ Player tabPlayers[MAX_PLAYERS];
 volatile sig_atomic_t end_inscriptions = 0;
 volatile sig_atomic_t end_game = 0;
 volatile int nbPLayers = 0;
+volatile int nbPlayersAlreadyPlayed = 0;
+
 
 
 void endServerHandler(int sig)
@@ -42,7 +44,15 @@ void childHandler(void *param) {
     swrite(player->sockfd, &message, sizeof(message));
 
     while(!end_game){
-        
+        printf("je suis la !!\n");
+        int tile;
+        sread(player->pipefdServeur[0], &tile, sizeof(tile));
+        printf("%d\n", tile);
+        StructMessage tileMessage;
+        tileMessage.code = NOUVELLE_TUILE;
+        sprintf(tileMessage.messageText, "%d", tile);
+        printf("%s", tileMessage.messageText);
+        swrite(player->sockfd, &tileMessage, sizeof(tileMessage));
     }
 }
 
@@ -69,10 +79,10 @@ int main(int argc, char **argv)
     ssigaction(SIGALRM, endServerHandler);
     ssigaction(SIGINT, SIGINTHandler);
 
-    sigset_t set;
+    /*sigset_t set;
     ssigemptyset(&set);
     sigaddset(&set, SIGINT);
-    ssigprocmask(SIG_BLOCK, &set, NULL);
+    ssigprocmask(SIG_BLOCK, &set, NULL);*/
 
     sockfd = initSocketServer(SERVER_PORT);
     printf("Le serveur tourne sur le port : %i...\n", SERVER_PORT);
@@ -159,11 +169,10 @@ int main(int argc, char **argv)
         }
     }
 
+    printf("test");
     for (int i = 0; i < NB_GAME; ++i)
     {
-        // GAME PART
-        int nbPlayersAlreadyPlayed = 0;
-
+        
         // init poll
         for (i = 0; i < MAX_PLAYERS; i++)
         {
@@ -171,7 +180,7 @@ int main(int argc, char **argv)
             fds[i].events = POLLIN;
         }
 
-        // loop game
+        // loop end_game        
         while (nbPlayersAlreadyPlayed < nbPLayers)
         {
             // poll during 1 second
@@ -180,6 +189,14 @@ int main(int argc, char **argv)
 
             if (ret == 0)
                 continue;
+
+            int tile = drawTile();
+            printf("%d\n", tile );
+
+            for (int i = 0; i < nbPLayers; ++i)
+            {                           
+                swrite(tabPlayers[i].pipefdServeur[1], &tile, sizeof(int));
+            }
 
             // check player something to read
             for (i = 0; i < nbPLayers; i++)

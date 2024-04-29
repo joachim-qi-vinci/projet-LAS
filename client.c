@@ -43,7 +43,7 @@ int main(int argc, char const *argv[])
         if (msg.code == FIN_DE_PARTIE)
         {
             printf("La partie est terminée\n");
-            printf("TODO: Afficher le classement\n")
+            printf("TODO: Afficher le classement\n");
             break;
         }
         if (msg.code == PARTIE_LANCEE)
@@ -69,7 +69,7 @@ int main(int argc, char const *argv[])
         }
         if(msg.code == DEMANDER_SCORE){
             displayPlateau();
-            int score = calculateScore();
+            calculateScore();
             printf("TODO: Envoyer le score au serveur\n");
         }
     }
