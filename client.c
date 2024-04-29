@@ -42,6 +42,8 @@ int main(int argc, char const *argv[])
         sread(sockfd, &msg, sizeof(msg));
         if (msg.code == FIN_DE_PARTIE)
         {
+            printf("La partie est terminée\n");
+            printf("TODO: Afficher le classement\n")
             break;
         }
         if (msg.code == PARTIE_LANCEE)
@@ -54,7 +56,23 @@ int main(int argc, char const *argv[])
             printf("La partie est annulée\n");
             break;
         }
+        if(msg.code == NOUVELLE_TUILE){
+            displayPlateau();
+            int tile = atoi(msg.messageText);
+            printf("La prochaine tuile est: %d\n", tile);
+            int position;
+            printf("Entrez la position de la tuile\n:");
+            scanf("%d", &position);
+            placeTile(position, tile);
+            printf("Tuile placée\nEn attente des autres joueurs...\n");
+            printf("TODO: Notifier le serveur que la tuile a été placée\n");
+        }
+        if(msg.code == DEMANDER_SCORE){
+            displayPlateau();
+            int score = calculateScore();
+            printf("TODO: Envoyer le score au serveur\n");
+        }
     }
-
+    freePlateau();
     return 0;
 }
