@@ -29,8 +29,8 @@ typedef struct Player
     int score;
     char pseudo[MAX_PSEUDO];
     int sockfd;
-    int pipefdServeur[2];
-    int pipefdClient[2];
+    int pipefdServeur;
+    int pipefdClient;
 } Player;
 
 #endif

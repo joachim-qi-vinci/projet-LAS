@@ -10,9 +10,16 @@ void endServerHandler(int sig)
     end_inscriptions = 1;
 }
 
-void childHandler()(Player player) {
-    sclose(player.pipefdServeur[0]);
-    sclose(player.pipefdClient[1]);
+void childHandler(void *param) {
+    Player *player = (Player *) param;
+
+    sclose(player->pipefdServeur);
+    sclose(player->pipefdClient);
+
+    StructMessage message;
+
+    sread(player->pipefdServeur, &message, sizeof(message));
+    swrite(player->sockfd, &message, sizeof(message));
 }
 
 
@@ -102,20 +109,21 @@ int main(int argc, char **argv)
         msg.code = PARTIE_LANCEE;
         for (int i = 0; i < nbPLayers; i++)
         {
-            swrite(tabPlayers[i].sockfd, &msg, sizeof(msg));
-
             int pipefdServeur[2];
             int pipefdClient[2];
-            tabPlayers[i].pipefdServeur = pipefdServeur[2];
-            tabPlayers[i].pipefdClient = pipefdClient[2];
+
             spipe(pipefdServeur);
             spipe(pipefdClient);
-            sclose(pipefdServeur[1]);
-            sclose(pipefdClient[0]);
 
-            fork_and_run1(childHandler, tabPlayers[i]);
+            tabPlayers[i].pipefdServeur = pipefdServeur[0];
+            tabPlayers[i].pipefdClient = pipefdClient[1];
 
-            swrite(pipefdServeur[0], msg.code, sizeof(msg.code));
+            fork_and_run1(childHandler, &tabPlayers[i]);
+
+            sclose(pipefdServeur[0]);
+            sclose(pipefdClient[1]);
+
+            swrite(pipefdServeur[1], &msg, sizeof(msg));
         }
     }
 
