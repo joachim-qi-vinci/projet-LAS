@@ -59,7 +59,12 @@ void sendScore();
 void sortTabScores(Player* playerTab);
 
 /**
- * Free the tiles and plateau
-**/
-void closeGame();
+ * Free the tiles table
+*/
+void freeTiles();
+
+/**
+ * Free the plateau
+*/
+void freePlateau();
 #endif
