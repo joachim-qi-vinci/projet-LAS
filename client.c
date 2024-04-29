@@ -40,7 +40,7 @@ int main(int argc, char const *argv[])
     while (1)
     {
         sread(sockfd, &msg, sizeof(msg));
-        if (msg.code == FIN_DE_PARTIE || msg.code == PARTIE_ANNULEE)
+        if (msg.code == FIN_DE_PARTIE)
         {
             break;
         }
@@ -49,9 +49,12 @@ int main(int argc, char const *argv[])
             printf("La partie est lancée\n");
             createPlateau();
         }
+
+        if(msg.code == PARTIE_ANNULEE){
+            printf("La partie est annulée\n");
+            break;
+        }
     }
 
-    // CLOSE LE SOCKET
-    sclose(sockfd);
     return 0;
 }

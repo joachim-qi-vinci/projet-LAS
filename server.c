@@ -1,24 +1,39 @@
 #include "server.h"
 #include "network.h"
+#include "ipc.h"
+
 
 /*** globals variables ***/
 Player tabPlayers[MAX_PLAYERS];
 volatile sig_atomic_t end_inscriptions = 0;
+volatile int nbPLayers = 0;
+
 
 void endServerHandler(int sig)
 {
     end_inscriptions = 1;
 }
 
+void SIGINTHandler(int sig) {
+    StructMessage message;
+    message.code = PARTIE_ANNULEE;
+    for (int i = 0; i < nbPLayers; ++i)
+    {
+        swrite(tabPlayers[i].sockfd, &message, sizeof(message));
+    }
+    closeIPC();
+    exit(0);
+}
+
 void childHandler(void *param) {
     Player *player = (Player *) param;
 
-    sclose(player->pipefdServeur);
-    sclose(player->pipefdClient);
+    sclose(player->pipefdServeur[1]);
+    sclose(player->pipefdClient[0]);
 
     StructMessage message;
 
-    sread(player->pipefdServeur, &message, sizeof(message));
+    sread(player->pipefdServeur[0], &message, sizeof(message));
     swrite(player->sockfd, &message, sizeof(message));
 }
 
@@ -40,12 +55,12 @@ int main(int argc, char **argv)
     char winnerName[256];
 
     ssigaction(SIGALRM, endServerHandler);
+    ssigaction(SIGINT, SIGINTHandler);
 
     sockfd = initSocketServer(SERVER_PORT);
     printf("Le serveur tourne sur le port : %i...\n", SERVER_PORT);
 
     i = 0;
-    int nbPLayers = 0;
 
     // PARTIE INSCRIPTION 
     alarm(TIME_INSCRIPTION);
@@ -105,8 +120,8 @@ int main(int argc, char **argv)
     else
     {
         printf("PARTIE VA DEMARRER ... \n");
-
         msg.code = PARTIE_LANCEE;
+        createScoresTab(nbPLayers);
         for (int i = 0; i < nbPLayers; i++)
         {
             int pipefdServeur[2];
@@ -115,8 +130,8 @@ int main(int argc, char **argv)
             spipe(pipefdServeur);
             spipe(pipefdClient);
 
-            tabPlayers[i].pipefdServeur = pipefdServeur[0];
-            tabPlayers[i].pipefdClient = pipefdClient[1];
+            tabPlayers[i].pipefdServeur = pipefdServeur;
+            tabPlayers[i].pipefdClient = pipefdClient;
 
             fork_and_run1(childHandler, &tabPlayers[i]);
 
@@ -173,6 +188,7 @@ int main(int argc, char **argv)
     // winner(tabPlayers[0], tabPlayers[1], winnerName);
     printf("GAGNANT : %s\n", winnerName);
     disconnect_players(tabPlayers, nbPLayers);
+    closeIPC();
     sclose(sockfd);
     return 0;
 }
