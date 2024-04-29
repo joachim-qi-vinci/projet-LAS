@@ -42,12 +42,14 @@ void createTilesTab() {
         tiles[index] = i;
         index++;
     }
-    tiles[tilesLeft] = -1;
+    tiles[tilesLeft-1] = -1;
 }
 
 void createPlateau(){
     plateau = smalloc(PLATEAU_LENGTH * sizeof(int));
-    
+    for(int i = 0; i < PLATEAU_LENGTH; i++){
+        plateau[i] = 0;
+    }
 }
 
 void readAndCreateTilesTab(char* filename){
@@ -57,7 +59,7 @@ void readAndCreateTilesTab(char* filename){
     if(lines == NULL) return;
     tiles = smalloc(tilesLeft * sizeof(int));
     int index = 0;
-    for(int i = 0; lines[i] != NULL; i++){
+    for(int i = 0; i < tilesLeft; i++){
         tiles[index] = atoi(lines[i]);
         free(lines[i]);
         index++;
@@ -70,6 +72,10 @@ void readAndCreateTilesTab(char* filename){
  * Return a random element in the table and remove it
 **/
 int drawTile(){
+    if(tilesLeft == 0){
+        freeTiles();
+        createTilesTab();
+    }
     int index = doRandomDraw ? randomIntBetween(0, tilesLeft) : 0;
     int tile = tiles[index];
     for(int i = index; i < tilesLeft-1; i++){
@@ -83,8 +89,24 @@ int drawTile(){
  * Place a tile in the table
 **/
 bool placeTile(int position, int tile){
+    position--;
     if(position == -1) return false;
-    if(plateau[position] != 0) return false;
+    if(plateau[position] != 0){
+        // passage à droite
+        for(int i = position; i < PLATEAU_LENGTH-1; i++){
+            if(plateau[i] == 0){
+                plateau[i] = tile;
+                return true;
+            }
+        }
+        // passage à gauche
+        for(int i = 0; i >= 0; i++){
+            if(plateau[i] == 0){
+                plateau[i] = tile;
+                return true;
+            }
+        }  
+    } 
     plateau[position] = tile; 
     return true;
 } 
@@ -117,7 +139,7 @@ int calculateScore(){
     int streak = 1;
 
     for(int i = 1; i < PLATEAU_LENGTH; i++){
-        if(plateau[i] >= plateau[i-1]) {
+        if(plateau[i] >= plateau[i-1] || plateau[i] == -1) {
             streak++;
         } else {
             score += scoreForStreak(streak);
@@ -145,8 +167,12 @@ void sortTabScore(Player** players, int size){
     }
 }
 
-void closeGame(){
+void freeTiles(){
     if(tiles != NULL) free(tiles);
+
+} 
+
+void freePlateau(){
     if(plateau != NULL) free(plateau);
 }
 
