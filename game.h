@@ -26,6 +26,11 @@ void createPlateau();
 int drawTile();
 
 /**
+ * Display the plateau
+*/
+void displayPlateau();
+
+/**
  * Place a tile in the table
 **/
 bool placeTile(int position, int tile);
