@@ -25,6 +25,11 @@ void placeScore(Player player, int logical_size) {
     sshmdt(tabPlayerIPC);
 }
 
+Player* getFinalScoreTab() {
+    Player* tabPlayerIPC = sshmat(shm_id);
+    return tabPlayerIPC;
+}
+
 void closeIPC() {
     free(tabPlayer);
     sshmdelete(shm_id);

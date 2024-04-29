@@ -6,12 +6,17 @@
 /*** globals variables ***/
 Player tabPlayers[MAX_PLAYERS];
 volatile sig_atomic_t end_inscriptions = 0;
+volatile sig_atomic_t end_game = 0;
 volatile int nbPLayers = 0;
 
 
 void endServerHandler(int sig)
 {
     end_inscriptions = 1;
+}
+
+void endGameHandler(int sig){
+    end_game = 1;
 }
 
 void SIGINTHandler(int sig) {
@@ -35,6 +40,10 @@ void childHandler(void *param) {
 
     sread(player->pipefdServeur[0], &message, sizeof(message));
     swrite(player->sockfd, &message, sizeof(message));
+
+    while(!end_game){
+        
+    }
 }
 
 
@@ -46,7 +55,10 @@ int main(int argc, char **argv)
     }
     if(argc == 3){
         readAndCreateTilesTab(argv[2]);
-    } 
+    }else {
+        createTilesTab();
+    }
+
     int SERVER_PORT = atoi(argv[1]);
     int sockfd, newsockfd, i;
     StructMessage msg;
@@ -56,6 +68,11 @@ int main(int argc, char **argv)
 
     ssigaction(SIGALRM, endServerHandler);
     ssigaction(SIGINT, SIGINTHandler);
+
+    sigset_t set;
+    ssigemptyset(&set);
+    sigaddset(&set, SIGINT);
+    ssigprocmask(SIG_BLOCK, &set, NULL);
 
     sockfd = initSocketServer(SERVER_PORT);
     printf("Le serveur tourne sur le port : %i...\n", SERVER_PORT);
@@ -142,47 +159,52 @@ int main(int argc, char **argv)
         }
     }
 
-
-    // GAME PART
-    int nbPlayersAlreadyPlayed = 0;
-
-    // init poll
-    for (i = 0; i < MAX_PLAYERS; i++)
+    for (int i = 0; i < NB_GAME; ++i)
     {
-        fds[i].fd = tabPlayers[i].sockfd;
-        fds[i].events = POLLIN;
-    }
-    // loop game
-    while (nbPlayersAlreadyPlayed < MAX_PLAYERS)
-    {
-        // poll during 1 second
-        ret = poll(fds, MAX_PLAYERS, 1000);
-        checkNeg(ret, "server poll error");
+        // GAME PART
+        int nbPlayersAlreadyPlayed = 0;
 
-        if (ret == 0)
-            continue;
-
-        // check player something to read
+        // init poll
         for (i = 0; i < MAX_PLAYERS; i++)
         {
-            if (fds[i].revents & POLLIN)
-            {
-                ret = sread(tabPlayers[i].sockfd, &msg, sizeof(msg));
-                // tester si la connexion du client a été fermée: close(sockfd) ==> read renvoie 0
-                // OU utiliser un tableau de booléens fds_invalid[i] pour indiquer
-                // qu'un socket a été traité et ne doit plus l'être (cf. exemple19_avec_poll)
-                // printf("poll detected POLLIN event on client socket %d (%s)... %s", tabPlayers[i].sockfd, tabPlayers[i].pseudo, ret == 0 ? "this socket is closed!\n" : "\n");
+            fds[i].fd = tabPlayers[i].sockfd;
+            fds[i].events = POLLIN;
+        }
 
-                if (ret != 0)
-                {
-                    // tabPlayers[i].shot = msg.code;
-                    // TODO: Changement de type (voir erreur lors du make)
-                    // printf("%s joue %s\n", tabPlayers[i].pseudo, codeToStr(msg.code));
-                    nbPlayersAlreadyPlayed++;
+        // loop game
+        while (nbPlayersAlreadyPlayed < nbPLayers)
+        {
+            // poll during 1 second
+            ret = poll(fds, MAX_PLAYERS, 1000);
+            checkNeg(ret, "server poll error");
+
+            if (ret == 0)
+                continue;
+
+            // check player something to read
+            for (i = 0; i < nbPLayers; i++)
+            {
+                if (fds[i].revents & POLLIN)
+                {      
+                    ret = sread(tabPlayers[i].sockfd, &msg, sizeof(msg));
+                    // tester si la connexion du client a été fermée: close(sockfd) ==> read renvoie 0
+                    // OU utiliser un tableau de booléens fds_invalid[i] pour indiquer
+                    // qu'un socket a été traité et ne doit plus l'être (cf. exemple19_avec_poll)
+                    // printf("poll detected POLLIN event on client socket %d (%s)... %s", tabPlayers[i].sockfd, tabPlayers[i].pseudo, ret == 0 ? "this socket is closed!\n" : "\n");
+
+                    if (ret != 0)
+                    {
+                        // tabPlayers[i].shot = msg.code;
+                        // TODO: Changement de type (voir erreur lors du make)
+                        // printf("%s joue %s\n", tabPlayers[i].pseudo, codeToStr(msg.code));
+                        nbPlayersAlreadyPlayed++;
+                    }
                 }
             }
         }
     }
+
+    
 
     // TODO
     // winner(tabPlayers[0], tabPlayers[1], winnerName);

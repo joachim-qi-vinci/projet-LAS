@@ -2,7 +2,10 @@
 #define _GAME_H_
 
 #include <stdbool.h>
-#include "messages.h"  
+#include "messages.h"
+
+#define NB_GAME 20
+
 /**
  * Create the table with chars from 1 to 30 where 11 to 19 is
  * present two times
