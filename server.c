@@ -265,6 +265,7 @@ int main(int argc, char **argv)
         }
         for (int i = 0; i < NB_GAME; i++)
         {
+            printf("%d\n", i);
             msg.code = NOUVELLE_TUILE;
             printf("msg.code = %d\n", msg.code);
             int tile = drawTile();
@@ -320,20 +321,16 @@ int main(int argc, char **argv)
                                     nbPlayersAlreadyPlayed++;
                                     printf("Nombre qui a déjà joué = %d\n", nbPlayersAlreadyPlayed);
                                 }
-                                else if (msg.code == DEMANDER_SCORE)
-                                {
-                                    printf("Le joueur %s demande le score\n", tabPlayers[playerIndex].pseudo);
-                                    // Gérer la demande de score ici
-                                }
                             }
                         }
                     }
                 }
             }
             nbPlayersAlreadyPlayed = 0;
-            continue;
         }
+                printf("JE SUIS LAAAAAAA");
 
+        int scoresReceived = 0;
         // demande des scores
         createScoresTab(nbPlayers);
         msg.code = DEMANDER_SCORE;
@@ -342,22 +339,53 @@ int main(int argc, char **argv)
             swrite(tabPlayers[i].pipefdServeur[1], &msg, sizeof(msg));
         }
 
-
-        int scoresReceived = 0;
-
         for (int i = 0; i < nbPlayers; ++i)
         {
-            while(scoresReceived < nbPlayers){
-                if(sread(tabPlayers[i].pipefdClient[0], &msg, sizeof(msg)) > 0){
-                    if(msg.code == NOTER_SCORE){
-                        tabPlayers[i].score = atoi(msg.messageText);
-                        placeScore(tabPlayers[i], scoresReceived);
-                        scoresReceived++;
-                        break;
+            fds[nbPlayers + i].fd = tabPlayers[i].pipefdClient[0];
+            fds[nbPlayers + i].events = POLLIN;
+        }
+
+            // Attendre que tous les joueurs aient placé leur tuile
+            while (scoresReceived < nbPlayers)
+            {
+                // Attendre jusqu'à une seconde pour les données à lire sur n'importe quel descripteur surveillé
+                ret = poll(fds, nbPlayers * 2, 1000);
+                if (ret == -1)
+                {
+                    perror("poll");
+                    exit(EXIT_FAILURE);
+                }
+                else if (ret == 0)
+                {
+                    // Aucune donnée à lire sur aucun descripteur surveillé, continuer à la prochaine itération
+                    continue;
+                }
+                else
+                {
+                    // Parcourir tous les descripteurs surveillés
+                    for (int i = 0; i < nbPlayers * 2; ++i)
+                    {
+                        // Vérifier s'il y a des données à lire sur ce descripteur surveillé
+                        if (fds[i].revents & POLLIN)
+                        {
+                            // Trouver le joueur correspondant au descripteur surveillé
+                            int playerIndex = i % nbPlayers;
+
+                            // Lire les données depuis le tube du joueur
+                            ret = sread(tabPlayers[playerIndex].pipefdClient[0], &msg, sizeof(msg));
+                            if (ret != 0)
+                            {
+                                if(msg.code == NOTER_SCORE){
+                                    tabPlayers[i].score = atoi(msg.messageText);
+                                    placeScore(tabPlayers[i], scoresReceived);
+                                    scoresReceived++;
+                                    printf("SCORE REÇU !!!!!!\n");
+                                }
+                            }
+                        }
                     }
                 }
             }
-        }
 
         //tri du tableau des scores
         Player* scoresTab = getScoresTab();
