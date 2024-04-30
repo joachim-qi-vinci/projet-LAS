@@ -333,7 +333,42 @@ int main(int argc, char **argv)
             }
             nbPlayersAlreadyPlayed = 0;
     }
-        // TODO
+
+        // demande des scores
+        createScoresTab(nbPlayers);
+        msg.code = DEMANDER_SCORE;
+        for (int i = 0; i < nbPlayers; ++i)
+        {
+            swrite(tabPlayers[i].pipefdServeur[1], &msg, sizeof(msg));
+        }
+
+
+        int scoresReceived = 0;
+
+        for (int i = 0; i < nbPlayers; ++i)
+        {
+            while(scoresReceived < nbPlayers){
+                if(sread(tabPlayers[i].pipefdClient[0], &msg, sizeof(msg)) > 0){
+                    if(msg.code == NOTER_SCORE){
+                        tabPlayers[i].score = atoi(msg.messageText);
+                        placeScore(tabPlayers[i], scoresReceived);
+                        scoresReceived++;
+                        break;
+                    }
+                }
+            }
+        }
+
+        //tri du tableau des scores
+        Player* scoresTab = getScoresTab();
+        sortTabScores(&scoresTab, nbPlayers);
+        sshmdt(scoresTab);
+        msg.code = FIN_DE_PARTIE;
+        for (int i = 0; i < nbPlayers; ++i)
+        {
+            swrite(tabPlayers[i].pipefdServeur[1], &msg, sizeof(msg));
+        }
+
         // winner(tabPlayers[0], tabPlayers[1], winnerName);
         printf("GAGNANT : %s\n", winnerName);
         disconnect_players(tabPlayers, nbPlayers);
