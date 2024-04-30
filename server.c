@@ -289,6 +289,12 @@ int main(int argc, char **argv)
             disconnect_players(tabPlayers, nbPlayers);
             closeIPC();
             sclose(sockfd);
+
+            // libérer les pipes
+            for(int i = 0; i < nbPlayers; i++) {
+                free(tabPlayers[i].pipefdServeur);
+                free(tabPlayers[i].pipefdClient);
+            }
             return 0;
         }
     }
