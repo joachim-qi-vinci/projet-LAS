@@ -29,6 +29,10 @@ void SIGINTHandler(int sig)
     }
     closeIPC();
     disconnect_players(tabPlayers, nbPlayers);
+    for(int i = 0; i < nbPlayers; i++) {
+        free(tabPlayers[i].pipefdServeur);
+         free(tabPlayers[i].pipefdClient);
+    }
     exit(0);
 }
 

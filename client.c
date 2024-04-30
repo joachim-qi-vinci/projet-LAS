@@ -72,14 +72,15 @@ int main(int argc, char const *argv[])
                 msg.code = TUILE_PLACEE;
                 swrite(sockfd, &msg, sizeof(msg));
                 printf("La tuile a été placée\n");
-
             }
             if(msg.code == DEMANDER_SCORE){
                 displayPlateau();
                 calculateScore();
-                printf("TODO: Envoyer le score au serveur\n");
+                msg.code = NOTER_SCORE;
+                sprintf(msg.messageText, "%d", calculateScore());
+                write(sockfd, &msg, sizeof(msg));
             }
-        }  
+        }
     }
     freePlateau();
     return 0;
