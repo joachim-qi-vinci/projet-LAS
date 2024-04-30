@@ -223,7 +223,6 @@ int main(int argc, char **argv)
             close(pipefdServeur[0]);
             close(pipefdClient[1]);
 
-            printf("Envoi du démarrage de la partie au pipe %d\n", tabPlayers[i].pipefdServeur[1]);
             write(pipefdServeur[1], &msg, sizeof(msg));
         }
 
@@ -232,12 +231,10 @@ int main(int argc, char **argv)
             fds[i].fd = tabPlayers[i].sockfd;
             fds[i].events = POLLIN;
         }
-        printf("TIRAGE DE LA TUILE\n");
-        
-        printf("msg.code = %d\n", msg.code);
         for (int i = 0; i < NB_GAME; i++)
         {
             msg.code = NOUVELLE_TUILE;
+            printf("msg.code = %d\n", msg.code);
             int tile = drawTile();
             sprintf(msg.messageText, "%d", tile);
             printf("msg.messageText = %s\n", msg.messageText);
@@ -295,15 +292,14 @@ int main(int argc, char **argv)
                                 {
                                     printf("Le joueur %s demande le score\n", tabPlayers[playerIndex].pseudo);
                                     // Gérer la demande de score ici
-                                    break;
                                 }
                             }
                         }
                     }
                 }
-            msg.code = NOUVELLE_TUILE;
             }
-            
+            nbPlayersAlreadyPlayed = 0;
+            continue;
         }
         // TODO
             // winner(tabPlayers[0], tabPlayers[1], winnerName);
