@@ -68,21 +68,20 @@ void childHandler(void *param)
                 else if (bytes_read == 0)
                 {
                     // Fin de fichier ou connexion fermée
-                    // Traitez ici en fonction de votre logique
                     continue;
                 }
 
                 printf("CHILD MESSAGE.CODE = %d\n", message.code);
                 if (fds[i].fd == player->pipefdServeur[0])
                 {
-                    // Lecture depuis pipeServeur
+                    // lecture du code
                     if (message.code == PARTIE_LANCEE)
                     {
                         printf("Partie lancée pour %s!\n", player->pseudo);
-                        // Fermer les extrémités des tubes inutilisées
+                        // Fermer les extrémités des pipes
                         sclose(player->pipefdServeur[1]);
                         sclose(player->pipefdClient[0]);
-                        // Écrire le message sur le socket du client
+                        // Envoi du message de démarrage
                         swrite(player->sockfd, &message, sizeof(message));
                     }
                     if (message.code == NOUVELLE_TUILE)
@@ -200,26 +199,29 @@ int main(int argc, char **argv)
         msg.code = PARTIE_LANCEE;
         createScoresTab(nbPlayers);
 
-        for (int i = 0; i < nbPlayers; i++)
-        {
+        for (int i = 0; i < nbPlayers; i++) {
             int pipefdServeur[2];
             int pipefdClient[2];
 
-            spipe(pipefdServeur);
-            spipe(pipefdClient);
+            tabPlayers[i].pipefdServeur = malloc(2 * sizeof(int));
+            tabPlayers[i].pipefdClient = malloc(2 * sizeof(int));
 
-            tabPlayers[i].pipefdServeur = pipefdServeur;
-            tabPlayers[i].pipefdClient = pipefdClient;
+            pipe(pipefdServeur);
+            pipe(pipefdClient);
 
-            // Créer un processus enfant pour chaque joueur
+            tabPlayers[i].pipefdServeur[0] = pipefdServeur[0];
+            tabPlayers[i].pipefdServeur[1] = pipefdServeur[1];
+            tabPlayers[i].pipefdClient[0] = pipefdClient[0];
+            tabPlayers[i].pipefdClient[1] = pipefdClient[1];
+
+
             fork_and_run1(childHandler, &tabPlayers[i]);
 
-            // Fermer les extrémités inutilisées des tubes
             close(pipefdServeur[0]);
             close(pipefdClient[1]);
 
-            // Envoyer le message de démarrage de la partie via le tube serveur-vers-client
-            swrite(pipefdServeur[1], &msg, sizeof(msg));
+            printf("Envoi du démarrage de la partie au pipe %d\n", tabPlayers[i].pipefdServeur[1]);
+            write(pipefdServeur[1], &msg, sizeof(msg));
         }
 
         for (int i = 0; i < nbPlayers; i++)
@@ -230,17 +232,15 @@ int main(int argc, char **argv)
         printf("TIRAGE DE LA TUILE\n");
         msg.code = NOUVELLE_TUILE;
         printf("msg.code = %d\n", msg.code);
-        for (int i = 0; i < NB_GAME; ++i)
+        for (int i = 0; i < NB_GAME; i++)
         {
             int tile = drawTile();
             sprintf(msg.messageText, "%d", tile);
             printf("msg.messageText = %s\n", msg.messageText);
 
-            for (int i = 0; i < nbPlayers; i++)
+            for (int j = 0; j < nbPlayers; ++j)
             {
-                // Écrivez le message 202 sur le pipefdServeur du client actuel
-                swrite(tabPlayers[i].pipefdServeur[1], &msg, sizeof(msg));
-                printf("envoi de la tuile sur pipe n° %d \n", tabPlayers[i].pipefdServeur[1])
+                swrite(tabPlayers[j].pipefdServeur[1], &msg, sizeof(msg));
             }
 
             // Attendre que chaque joueur place sa tuile
