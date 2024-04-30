@@ -51,7 +51,6 @@ int main(int argc, char const *argv[])
             {
                 printf("La partie est lancée\n");
                 createPlateau();
-                displayPlateau();
                 break;
             }
 

@@ -6,7 +6,7 @@
 Player tabPlayers[MAX_PLAYERS];
 volatile sig_atomic_t end_inscriptions = 0;
 volatile sig_atomic_t end_game = 0;
-volatile int nbPLayers = 0;
+volatile int nbPlayers = 0;
 volatile int nbPlayersAlreadyPlayed = 0;
 
 void endServerHandler(int sig)
@@ -23,16 +23,17 @@ void SIGINTHandler(int sig)
 {
     StructMessage message;
     message.code = PARTIE_ANNULEE;
-    for (int i = 0; i < nbPLayers; ++i)
+    for (int i = 0; i < nbPlayers; ++i)
     {
         swrite(tabPlayers[i].sockfd, &message, sizeof(message));
     }
     closeIPC();
-    disconnect_players(tabPlayers, nbPLayers);
+    disconnect_players(tabPlayers, nbPlayers);
     exit(0);
 }
 
-void childHandler(void *param) {
+void childHandler(void *param)
+{
     Player *player = (Player *)param;
     printf("CHILD %s\n", player->pseudo);
     StructMessage message;
@@ -46,44 +47,59 @@ void childHandler(void *param) {
     fds[1].fd = player->sockfd;
     fds[1].events = POLLIN;
 
-    while (1) {
-        if (poll(fds, 2, -1) == -1) {
+    while (1)
+    {
+        if (poll(fds, 2, -1) == -1)
+        {
             perror("poll");
             exit(EXIT_FAILURE);
         }
 
-        for (int i = 0; i < 2; ++i) {
-            if (fds[i].revents & POLLIN) {
+        for (int i = 0; i < 2; ++i)
+        {
+            if (fds[i].revents & POLLIN)
+            {
                 ssize_t bytes_read = read(fds[i].fd, &message, sizeof(message));
-                if (bytes_read == -1) {
+                if (bytes_read == -1)
+                {
                     perror("read");
                     exit(EXIT_FAILURE);
-                } else if (bytes_read == 0) {
+                }
+                else if (bytes_read == 0)
+                {
                     // Fin de fichier ou connexion fermée
                     // Traitez ici en fonction de votre logique
                     continue;
                 }
 
                 printf("CHILD MESSAGE.CODE = %d\n", message.code);
-                if (fds[i].fd == player->pipefdServeur[0]) {
+                if (fds[i].fd == player->pipefdServeur[0])
+                {
                     // Lecture depuis pipeServeur
-                    if (message.code == PARTIE_LANCEE) {
+                    if (message.code == PARTIE_LANCEE)
+                    {
                         printf("Partie lancée pour %s!\n", player->pseudo);
+                        // Fermer les extrémités des tubes inutilisées
                         sclose(player->pipefdServeur[1]);
                         sclose(player->pipefdClient[0]);
+                        // Écrire le message sur le socket du client
                         swrite(player->sockfd, &message, sizeof(message));
                     }
-
-                    if (message.code == NOUVELLE_TUILE) {
+                    if (message.code == NOUVELLE_TUILE)
+                    {
                         printf("Child %s - NOUVELLE_TUILE\n", player->pseudo);
                         swrite(player->sockfd, &message, sizeof(message));
                         printf("Child %s - WRITE\n", player->pseudo);
                     }
-                } else if (fds[i].fd == player->sockfd) {
+                }
+                else if (fds[i].fd == player->sockfd)
+                {
                     // Lecture depuis socketfd
-                    if (message.code == TUILE_PLACEE) {
+                    if (message.code == TUILE_PLACEE)
+                    {
                         printf("Child %s - TUILE_PLACEE\n", player->pseudo);
-                        // Traitement du message TUILE_PLACEE
+                        message.code = NOUVELLE_TUILE;
+                        // Envoie au serveur qu'il faut une nouvelle tuile
                         swrite(player->pipefdClient[1], &message, sizeof(message));
                         printf("Child %s - WRITE\n", player->pseudo);
                     }
@@ -93,40 +109,12 @@ void childHandler(void *param) {
     }
 }
 
-/*
-void childHandler(void *param)
-{
-    Player *player = (Player *)param;
-    printf("CHILD %s\n", player->pseudo);
-    StructMessage message;
-    while (sread(player->pipefdServeur[0], &message, sizeof(message)) > 0)
-    {
-        printf("CHILD MESSAGE.CODE = %d\n", message.code);
-        if (message.code == PARTIE_LANCEE)
-        {
-            printf("Partie lancée pour %s!\n", player->pseudo);
-            sclose(player->pipefdServeur[1]);
-            sclose(player->pipefdClient[0]);
-            swrite(player->sockfd, &message, sizeof(message));
-        }
-
-        if (message.code == NOUVELLE_TUILE)
-        {
-            printf("Child %s - NOUVELLE_TUILE\n", player->pseudo);
-            swrite(player->sockfd, &message, sizeof(message));
-            printf("Child %s - WRITE\n", player->pseudo);
-        }
-    }
-    
-}
-*/
-
 int main(int argc, char **argv)
 {
     if (argc < 2)
     {
         printf("Usage: %s <port> [fichierDeTuiles]\n", argv[0]);
-        return (0);
+        return 0;
     }
     if (argc == 3)
     {
@@ -147,12 +135,6 @@ int main(int argc, char **argv)
     ssigaction(SIGALRM, endServerHandler);
     ssigaction(SIGINT, SIGINTHandler);
 
-    /*sigset_t set;
-    ssigemptyset(&set);
-    sigaddset(&set, SIGINT);
-    ssigprocmask(SIG_BLOCK, &set, NULL);
-    */
-
     sockfd = initSocketServer(SERVER_PORT);
     printf("Le serveur tourne sur le port : %i...\n", SERVER_PORT);
 
@@ -167,7 +149,6 @@ int main(int argc, char **argv)
         newsockfd = accept(sockfd, NULL, NULL); // saccept() exit le programme si accept a été interrompu par l'alarme
         if (newsockfd > 0)                      /* no error on accept */
         {
-
             ret = sread(newsockfd, &msg, sizeof(msg));
 
             if (msg.code == INSCRIPTION_REQUEST)
@@ -178,12 +159,12 @@ int main(int argc, char **argv)
                 tabPlayers[i].sockfd = newsockfd;
                 i++;
 
-                if (nbPLayers < MAX_PLAYERS)
+                if (nbPlayers < MAX_PLAYERS)
                 {
                     msg.code = INSCRIPTION_OK;
-                    nbPLayers++;
+                    nbPlayers++;
 
-                    if (nbPLayers == MAX_PLAYERS)
+                    if (nbPlayers == MAX_PLAYERS)
                     {
                         alarm(0); // cancel alarm
                         end_inscriptions = 1;
@@ -194,22 +175,22 @@ int main(int argc, char **argv)
                     msg.code = INSCRIPTION_KO;
                 }
                 ret = swrite(newsockfd, &msg, sizeof(msg));
-                printf("Nb Inscriptions : %i\n", nbPLayers);
+                printf("Nb Inscriptions : %i\n", nbPlayers);
             }
         }
     }
 
     printf("FIN DES INSCRIPTIONS\n");
 
-    if (nbPLayers < 2)
+    if (nbPlayers < 2)
     {
         printf("PARTIE ANNULEE .. PAS ASSEZ DE JOUEURS\n");
         msg.code = PARTIE_ANNULEE;
-        for (i = 0; i < nbPLayers; i++)
+        for (i = 0; i < nbPlayers; i++)
         {
             swrite(tabPlayers[i].sockfd, &msg, sizeof(msg));
         }
-        disconnect_players(tabPlayers, nbPLayers);
+        disconnect_players(tabPlayers, nbPlayers);
         sclose(sockfd);
         exit(0);
     }
@@ -217,28 +198,31 @@ int main(int argc, char **argv)
     {
         printf("PARTIE VA DEMARRER ... \n");
         msg.code = PARTIE_LANCEE;
-        createScoresTab(nbPLayers);
+        createScoresTab(nbPlayers);
 
-        for (int i = 0; i < nbPLayers; i++)
+        for (int i = 0; i < nbPlayers; i++)
         {
             int pipefdServeur[2];
             int pipefdClient[2];
 
             spipe(pipefdServeur);
             spipe(pipefdClient);
-
+        
             tabPlayers[i].pipefdServeur = pipefdServeur;
             tabPlayers[i].pipefdClient = pipefdClient;
 
+            // Créer un processus enfant pour chaque joueur
             fork_and_run1(childHandler, &tabPlayers[i]);
 
-            sclose(pipefdServeur[0]);
-            sclose(pipefdClient[1]);
+            // Fermer les extrémités inutilisées des tubes
+            close(pipefdServeur[0]);
+            close(pipefdClient[1]);
 
+            // Envoyer le message de démarrage de la partie via le tube serveur-vers-client
             swrite(pipefdServeur[1], &msg, sizeof(msg));
         }
 
-        for (int i = 0; i < nbPLayers; i++)
+        for (int i = 0; i < nbPlayers; i++)
         {
             fds[i].fd = tabPlayers[i].sockfd;
             fds[i].events = POLLIN;
@@ -252,52 +236,60 @@ int main(int argc, char **argv)
             sprintf(msg.messageText, "%d", tile);
             printf("msg.messageText = %s\n", msg.messageText);
 
-            for (int j = 0; j < nbPLayers; ++j)
+            for (int j = 0; j < nbPlayers; ++j)
             {
                 swrite(tabPlayers[j].pipefdServeur[1], &msg, sizeof(msg));
             }
 
-            // loop end_game
-            while (nbPlayersAlreadyPlayed < nbPLayers)
+            // Attendre que chaque joueur place sa tuile
+            for (int i = 0; i < nbPlayers; ++i)
             {
-
-                ret = poll(fds, nbPLayers, 1000);
-                checkNeg(ret, "server poll error");
-
-                if (ret == 0)
+                while (1)
                 {
-                    continue;
-                }
-
-                // check player something to read
-                for (int k = 0; k < nbPLayers; k++)
-                {
-                    if (fds[k].revents & POLLIN)
+                    ret = poll(&fds[i], 1, 1000);
+                    if (ret == -1)
                     {
-                        ret = sread(tabPlayers[k].sockfd, &msg, sizeof(msg));
-                        // tester si la connexion du client a été fermée: close(sockfd) ==> read renvoie 0
-                        // OU utiliser un tableau de booléens fds_invalid[i] pour indiquer
-                        // qu'un socket a été traité et ne doit plus l'être (cf. exemple19_avec_poll)
-                        // printf("poll detected POLLIN event on client socket %d (%s)... %s", tabPlayers[i].sockfd, tabPlayers[i].pseudo, ret == 0 ? "this socket is closed!\n" : "\n");
-
-                        if (ret != 0)
+                        perror("poll");
+                        exit(EXIT_FAILURE);
+                    }
+                    else if (ret == 0)
+                    {
+                        printf("Le joueur %s n'a pas encore placé sa tuile\n", tabPlayers[i].pseudo);
+                        continue;
+                    }
+                    else
+                    {
+                        // Vérifier s'il y a des données à lire sur le tube du joueur
+                        if (fds[i].revents & POLLIN)
                         {
-                            // tabPlayers[i].shot = msg.code;
-                            // TODO: Changement de type (voir erreur lors du make)
-                            // printf("%s joue %s\n", tabPlayers[i].pseudo, codeToStr(msg.code));
-                            nbPlayersAlreadyPlayed++;
+                            ret = sread(tabPlayers[i].pipefdClient[0], &msg, sizeof(msg));
+                            if (ret != 0)
+                            {
+                                if (msg.code == TUILE_PLACEE)
+                                {
+                                    printf("Le joueur %s a placé sa tuile\n", tabPlayers[i].pseudo);
+                                    nbPlayersAlreadyPlayed++;
+                                }
+                                else if (msg.code == DEMANDER_SCORE)
+                                {
+                                    printf("Le joueur %s demande le score\n", tabPlayers[i].pseudo);
+                                    // Gérer la demande de score ici
+                                }
+                            }
                         }
                     }
                 }
             }
+
+            // TODO
+            // winner(tabPlayers[0], tabPlayers[1], winnerName);
+            printf("GAGNANT : %s\n", winnerName);
+            disconnect_players(tabPlayers, nbPlayers);
+            closeIPC();
+            sclose(sockfd);
+            return 0;
         }
     }
 
-    // TODO
-    // winner(tabPlayers[0], tabPlayers[1], winnerName);
-    printf("GAGNANT : %s\n", winnerName);
-    disconnect_players(tabPlayers, nbPLayers);
-    closeIPC();
-    sclose(sockfd);
     return 0;
 }
