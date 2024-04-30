@@ -356,7 +356,6 @@ int main(int argc, char **argv)
                                     tabPlayers[i].score = atoi(msg.messageText);
                                     placeScore(tabPlayers[i], scoresReceived);
                                     scoresReceived++;
-                                    printf("SCORE REÇU !!!!!! %d\n", tabPlayers[i].score);
                                 } 
                             }
                         }
