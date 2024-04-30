@@ -77,8 +77,7 @@ int drawTile(){
         freeTiles();
         createTilesTab();
     }
-    int index = doRandomDraw ? randomIntBetween(0, 20) : 0;
-    if(index < tilesLeft) index = tilesLeft-1;
+    int index = doRandomDraw ? randomIntBetween(0, tilesLeft) : 0;
     int tile = tiles[index];
     for(int i = index; i < tilesLeft-1; i++){
         tiles[i] = tiles[i+1];  
