@@ -43,17 +43,15 @@ void childHandler(void *param) {
     sread(player->pipefdServeur[0], &message, sizeof(message));
     swrite(player->sockfd, &message, sizeof(message));
 
-    while(!end_game){
-        printf("je suis la !!\n");
-        int tile;
-        sread(player->pipefdServeur[0], &tile, sizeof(tile));
-        printf("%d\n", tile);
-        StructMessage tileMessage;
-        tileMessage.code = NOUVELLE_TUILE;
-        sprintf(tileMessage.messageText, "%d", tile);
-        printf("%s", tileMessage.messageText);
-        swrite(player->sockfd, &tileMessage, sizeof(tileMessage));
-    }
+    // while(!end_game){
+    //     printf("DANS LA BOUCLE!!\n");
+    //     int tile;
+    //     sread(player->pipefdServeur[0], &tile, sizeof(tile));
+    //     printf("UNE TUILE = %d\n", tile);
+    //     StructMessage tileMessage;
+    //     tileMessage.code = NOUVELLE_TUILE;
+    //     swrite(player->sockfd, &tileMessage, sizeof(tileMessage));
+    // }
 }
 
 
@@ -169,12 +167,11 @@ int main(int argc, char **argv)
         }
     }
 
-    printf("test");
+    printf("HELLO HELLO\n");
     for (int i = 0; i < NB_GAME; ++i)
     {
-        
         // init poll
-        for (i = 0; i < MAX_PLAYERS; i++)
+        for (i = 0; i < nbPLayers; i++)
         {
             fds[i].fd = tabPlayers[i].sockfd;
             fds[i].events = POLLIN;
@@ -187,11 +184,12 @@ int main(int argc, char **argv)
             ret = poll(fds, MAX_PLAYERS, 1000);
             checkNeg(ret, "server poll error");
 
-            if (ret == 0)
+            if (ret == 0){
                 continue;
+            }
 
             int tile = drawTile();
-            printf("%d\n", tile );
+            printf("Server line 196 TILE = %d\n", tile );
 
             for (int i = 0; i < nbPLayers; ++i)
             {                           

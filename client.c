@@ -52,6 +52,10 @@ int main(int argc, char const *argv[])
             createPlateau();
         }
 
+        if(msg.code == PARTIE_ANNULEE){
+            printf("La partie est annulée\n");
+            break;
+        }
         if(msg.code == NOUVELLE_TUILE){
             displayPlateau();
             int tile = atoi(msg.messageText);
