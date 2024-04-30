@@ -233,10 +233,11 @@ int main(int argc, char **argv)
             fds[i].events = POLLIN;
         }
         printf("TIRAGE DE LA TUILE\n");
-        msg.code = NOUVELLE_TUILE;
+        
         printf("msg.code = %d\n", msg.code);
         for (int i = 0; i < NB_GAME; i++)
         {
+            msg.code = NOUVELLE_TUILE;
             int tile = drawTile();
             sprintf(msg.messageText, "%d", tile);
             printf("msg.messageText = %s\n", msg.messageText);
@@ -294,11 +295,13 @@ int main(int argc, char **argv)
                                 {
                                     printf("Le joueur %s demande le score\n", tabPlayers[playerIndex].pseudo);
                                     // Gérer la demande de score ici
+                                    break;
                                 }
                             }
                         }
                     }
                 }
+            msg.code = NOUVELLE_TUILE;
             }
             
         }
