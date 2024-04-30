@@ -29,6 +29,7 @@ void SIGINTHandler(int sig) {
         swrite(tabPlayers[i].sockfd, &message, sizeof(message));
     }
     closeIPC();
+    disconnect_players(tabPlayers, nbPLayers);
     exit(0);
 }
 
@@ -44,14 +45,12 @@ void childHandler(void *param) {
     swrite(player->sockfd, &message, sizeof(message));
 
     while(!end_game){
-        printf("je suis la !!\n");
         int tile;
         sread(player->pipefdServeur[0], &tile, sizeof(tile));
-        printf("%d\n", tile);
+        printf("%d de %d", tile, getpid());
         StructMessage tileMessage;
         tileMessage.code = NOUVELLE_TUILE;
         sprintf(tileMessage.messageText, "%d", tile);
-        printf("%s", tileMessage.messageText);
         swrite(player->sockfd, &tileMessage, sizeof(tileMessage));
     }
 }
@@ -149,6 +148,7 @@ int main(int argc, char **argv)
         printf("PARTIE VA DEMARRER ... \n");
         msg.code = PARTIE_LANCEE;
         createScoresTab(nbPLayers);
+        pid_t parentId = getpid();
         for (int i = 0; i < nbPLayers; i++)
         {
             int pipefdServeur[2];
@@ -167,54 +167,48 @@ int main(int argc, char **argv)
 
             swrite(pipefdServeur[1], &msg, sizeof(msg));
         }
-    }
 
-    printf("test");
-    for (int i = 0; i < NB_GAME; ++i)
-    {
-        
-        // init poll
-        for (i = 0; i < MAX_PLAYERS; i++)
-        {
-            fds[i].fd = tabPlayers[i].sockfd;
-            fds[i].events = POLLIN;
-        }
+        if(parentId != 0){
+            printf("Partie lancée !\n");
 
-        // loop end_game        
-        while (nbPlayersAlreadyPlayed < nbPLayers)
-        {
-            // poll during 1 second
-            ret = poll(fds, MAX_PLAYERS, 1000);
-            checkNeg(ret, "server poll error");
-
-            if (ret == 0)
-                continue;
-
-            int tile = drawTile();
-            printf("%d\n", tile );
-
-            for (int i = 0; i < nbPLayers; ++i)
-            {                           
-                swrite(tabPlayers[i].pipefdServeur[1], &tile, sizeof(int));
+            for (int i = 0; i < nbPLayers; i++) {
+                fds[i].fd = tabPlayers[i].sockfd;
+                fds[i].events = POLLIN;
             }
 
-            // check player something to read
-            for (i = 0; i < nbPLayers; i++)
-            {
-                if (fds[i].revents & POLLIN)
-                {      
-                    ret = sread(tabPlayers[i].sockfd, &msg, sizeof(msg));
-                    // tester si la connexion du client a été fermée: close(sockfd) ==> read renvoie 0
-                    // OU utiliser un tableau de booléens fds_invalid[i] pour indiquer
-                    // qu'un socket a été traité et ne doit plus l'être (cf. exemple19_avec_poll)
-                    // printf("poll detected POLLIN event on client socket %d (%s)... %s", tabPlayers[i].sockfd, tabPlayers[i].pseudo, ret == 0 ? "this socket is closed!\n" : "\n");
+            for (int i = 0; i < NB_GAME; ++i){
 
-                    if (ret != 0)
-                    {
-                        // tabPlayers[i].shot = msg.code;
-                        // TODO: Changement de type (voir erreur lors du make)
-                        // printf("%s joue %s\n", tabPlayers[i].pseudo, codeToStr(msg.code));
-                        nbPlayersAlreadyPlayed++;
+                int tile = drawTile();
+
+                for (int j = 0; j < nbPLayers; ++j){                           
+                    swrite(tabPlayers[j].pipefdServeur[1], &tile, sizeof(int));
+                }
+
+                // loop end_game        
+                while (nbPlayersAlreadyPlayed < nbPLayers){
+
+                    ret = poll(fds, nbPLayers, 1000);
+                    checkNeg(ret, "server poll error");
+
+                    if (ret == 0)
+                        continue;
+
+                    // check player something to read
+                    for (int k = 0; k < nbPLayers; k++){
+                        if (fds[k].revents & POLLIN){      
+                            ret = sread(tabPlayers[k].sockfd, &msg, sizeof(msg));
+                            // tester si la connexion du client a été fermée: close(sockfd) ==> read renvoie 0
+                            // OU utiliser un tableau de booléens fds_invalid[i] pour indiquer
+                            // qu'un socket a été traité et ne doit plus l'être (cf. exemple19_avec_poll)
+                            // printf("poll detected POLLIN event on client socket %d (%s)... %s", tabPlayers[i].sockfd, tabPlayers[i].pseudo, ret == 0 ? "this socket is closed!\n" : "\n");
+
+                            if (ret != 0){
+                                // tabPlayers[i].shot = msg.code;
+                                // TODO: Changement de type (voir erreur lors du make)
+                                // printf("%s joue %s\n", tabPlayers[i].pseudo, codeToStr(msg.code));
+                                nbPlayersAlreadyPlayed++;
+                            }
+                        }
                     }
                 }
             }
