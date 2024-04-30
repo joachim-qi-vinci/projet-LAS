@@ -39,29 +39,17 @@ void childHandler(void *param) {
     sclose(player->pipefdServeur[1]);
     sclose(player->pipefdClient[0]);
 
-    StructMessage message;
-
-    sread(player->pipefdServeur[0], &message, sizeof(message));
-    swrite(player->sockfd, &message, sizeof(message));
-
-    while(!end_game){
-        int tile;
-        sread(player->pipefdServeur[0], &tile, sizeof(tile));
-        printf("%d de %d", tile, getpid());
-        StructMessage tileMessage;
-        tileMessage.code = NOUVELLE_TUILE;
-        sprintf(tileMessage.messageText, "%d", tile);
-        swrite(player->sockfd, &tileMessage, sizeof(tileMessage));
+    while(1){
+        StructMessage message;
+        while(sread(player->pipefdServeur[0], &message, sizeof(message))){
+            if(message.code == NOUVELLE_TUILE){
+                printf("%s", message.messageText);
+                swrite(player->sockfd, &message, sizeof(message));
+            }
+            
+        }
     }
-    // while(!end_game){
-    //     printf("DANS LA BOUCLE!!\n");
-    //     int tile;
-    //     sread(player->pipefdServeur[0], &tile, sizeof(tile));
-    //     printf("UNE TUILE = %d\n", tile);
-    //     StructMessage tileMessage;
-    //     tileMessage.code = NOUVELLE_TUILE;
-    //     swrite(player->sockfd, &tileMessage, sizeof(tileMessage));
-    // }
+    
 }
 
 
@@ -189,9 +177,13 @@ int main(int argc, char **argv)
             for (int i = 0; i < NB_GAME; ++i){
 
                 int tile = drawTile();
+                StructMessage message;
+                message.code = NOUVELLE_TUILE;
+                sprintf(message.messageText, "%d", tile);
+                printf("%s", message.messageText);
 
                 for (int j = 0; j < nbPLayers; ++j){                           
-                    swrite(tabPlayers[j].pipefdServeur[1], &tile, sizeof(int));
+                    swrite(tabPlayers[j].pipefdServeur[1], &message, sizeof(message));
                 }
 
                 // loop end_game        
