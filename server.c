@@ -332,8 +332,7 @@ int main(int argc, char **argv)
                 }
             }
             nbPlayersAlreadyPlayed = 0;
-            continue;
-        }
+    }
         // TODO
         // winner(tabPlayers[0], tabPlayers[1], winnerName);
         printf("GAGNANT : %s\n", winnerName);
