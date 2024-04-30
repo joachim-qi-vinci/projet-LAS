@@ -39,7 +39,8 @@ int main(int argc, char const *argv[])
     // WHILE PARTIE EN COURS
     while (1)
     {
-        while(sread(sockfd, &msg, sizeof(msg)) > 0){
+        while (sread(sockfd, &msg, sizeof(msg)) > 0)
+        {
             printf("Code message reçu: %d\n", msg.code);
             if (msg.code == FIN_DE_PARTIE)
             {
@@ -55,12 +56,14 @@ int main(int argc, char const *argv[])
                 break;
             }
 
-            if(msg.code == PARTIE_ANNULEE){
+            if (msg.code == PARTIE_ANNULEE)
+            {
                 printf("La partie est annulée\n");
                 exit(1);
             }
 
-            if(msg.code == NOUVELLE_TUILE){
+            if (msg.code == NOUVELLE_TUILE)
+            {
                 printf("Nous avons une nouvelle tuile !\n");
                 displayPlateau();
                 int tile = atoi(msg.messageText);
@@ -74,7 +77,8 @@ int main(int argc, char const *argv[])
                 swrite(sockfd, &msg, sizeof(msg));
                 printf("La tuile a été placée\n");
             }
-            if(msg.code == DEMANDER_SCORE){
+            if (msg.code == DEMANDER_SCORE)
+            {
                 displayPlateau();
                 msg.code = NOTER_SCORE;
                 sprintf(msg.messageText, "%d", calculateScore());
