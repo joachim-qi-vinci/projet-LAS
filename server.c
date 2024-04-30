@@ -265,7 +265,6 @@ int main(int argc, char **argv)
         }
         for (int i = 0; i < NB_GAME; i++)
         {
-            printf("%d\n", i);
             msg.code = NOUVELLE_TUILE;
             printf("msg.code = %d\n", msg.code);
             int tile = drawTile();
@@ -327,9 +326,8 @@ int main(int argc, char **argv)
                 }
             }
             nbPlayersAlreadyPlayed = 0;
+            continue;
         }
-                printf("JE SUIS LAAAAAAA");
-
         int scoresReceived = 0;
         // demande des scores
         createScoresTab(nbPlayers);
@@ -379,7 +377,6 @@ int main(int argc, char **argv)
                                     tabPlayers[i].score = atoi(msg.messageText);
                                     placeScore(tabPlayers[i], scoresReceived);
                                     scoresReceived++;
-                                    printf("SCORE REÇU !!!!!!\n");
                                 }
                             }
                         }
