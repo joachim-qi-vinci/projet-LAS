@@ -374,7 +374,7 @@ int main(int argc, char **argv)
 
 
 
-        // TODO
+        // TODOi
         // winner(tabPlayers[0], tabPlayers[1], winnerName);
         printf("GAGNANT : %s\n", winnerName);
         disconnect_players(tabPlayers, nbPlayers);
