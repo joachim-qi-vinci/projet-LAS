@@ -44,7 +44,7 @@ int main(int argc, char const *argv[])
             if (msg.code == FIN_DE_PARTIE)
             {
                 printf("La partie est terminée\n");
-                printf("TODO: Afficher le classement\n");
+                printf("%s", msg.messageText);
                 break;
             }
             if (msg.code == PARTIE_LANCEE)
@@ -75,7 +75,6 @@ int main(int argc, char const *argv[])
             }
             if(msg.code == DEMANDER_SCORE){
                 displayPlateau();
-                calculateScore();
                 msg.code = NOTER_SCORE;
                 sprintf(msg.messageText, "%d", calculateScore());
                 write(sockfd, &msg, sizeof(msg));

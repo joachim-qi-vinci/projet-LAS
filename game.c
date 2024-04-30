@@ -156,7 +156,7 @@ void sendScore(){
     // int score = calculateScore();
 }
 
-void sortTabScore(Player** players, int size){
+void sortTabScores(Player** players, int size){
     for (int i = 0; i < size-1; i++){
         for (int j = 0; j < size-i-1; j++){
           if (players[j]->score < players[j+1]->score){

@@ -1,6 +1,7 @@
 #include "server.h"
 #include "network.h"
 #include "ipc.h"
+#include  "game.h" 
 
 /*** globals variables ***/
 Player tabPlayers[MAX_PLAYERS];
@@ -99,6 +100,28 @@ void childHandler(void *param)
                         printf("Child %s - DEMANDER_SCORE\n", player->pseudo);
                         swrite(player->sockfd, &message, sizeof(message));
                     }
+
+                    if(message.code == FIN_DE_PARTIE){
+                        printf("Child %s - FIN_DE_PARTIE\n", player->pseudo);
+                        Player* scoresTabSorted = getScoresTab();
+                        char classement[MAX_LENGTH_CLASSEMENT];
+                        sprintf(classement, "[\n");
+                        for (int i = 0; i < nbPlayers; ++i)
+                        {   
+                            char playerScore[10];
+                            char number[10];
+                            sprintf(playerScore, "%d", scoresTabSorted[i].score);
+                            sprintf(number, "%d", i);
+                            strcat(classement, number);
+                            strcat(classement, " -> "); // Convertit le score en une chaîne de caractères
+                            strcat(classement, scoresTabSorted[i].pseudo); // Ajoute le pseudo du joueur
+                            strcat(classement, " : "); // Ajoute un séparateur
+                            strcat(classement, playerScore); // Ajoute le score du joueur
+                            strcat(classement, "\n");
+                        }
+                        strcpy(message.messageText, classement);
+                        swrite(player->sockfd, &message, sizeof(message));
+                    }
                 }
                 else if (fds[i].fd == player->sockfd)
                 {
@@ -110,6 +133,11 @@ void childHandler(void *param)
                         // Envoie au serveur qu'il faut une nouvelle tuile
                         swrite(player->pipefdClient[1], &message, sizeof(message));
                         printf("Child %s - WRITE\n", player->pseudo);
+                    }
+
+                    if(message.code == NOTER_SCORE){
+                        printf("Child %s - NOTER_SCORE\n", player->pseudo);
+                        swrite(player->pipefdClient[1], &message, sizeof(message));
                     }
                 }
             }
@@ -291,21 +319,9 @@ int main(int argc, char **argv)
                     }
                 }
             }
-
-            // TODO
-            // winner(tabPlayers[0], tabPlayers[1], winnerName);
-            printf("GAGNANT : %s\n", winnerName);
-            disconnect_players(tabPlayers, nbPlayers);
-            closeIPC();
-            sclose(sockfd);
-
-            // libérer les pipes
-            for(int i = 0; i < nbPlayers; i++) {
-                free(tabPlayers[i].pipefdServeur);
-                free(tabPlayers[i].pipefdClient);
-            }
-            return 0;
         }
+
+        // demande des scores
         createScoresTab(nbPlayers);
         msg.code = DEMANDER_SCORE;
         for (int i = 0; i < nbPlayers; ++i)
@@ -313,6 +329,48 @@ int main(int argc, char **argv)
             swrite(tabPlayers[i].pipefdServeur[1], &msg, sizeof(msg));
         }
 
+
+        int scoresReceived = 0;
+
+        for (int i = 0; i < nbPlayers; ++i)
+        {
+            while(scoresReceived < nbPlayers){
+                if(sread(tabPlayers[i].pipefdClient[0], &msg, sizeof(msg)) > 0){
+                    if(msg.code == NOTER_SCORE){
+                        tabPlayers[i].score = atoi(msg.messageText);
+                        placeScore(tabPlayers[i], scoresReceived);
+                        scoresReceived++;
+                        break;
+                    }
+                }
+            }
+        }
+
+        //tri du tableau des scores
+        Player* scoresTab = getScoresTab();
+        sortTabScores(&scoresTab, nbPlayers);
+        sshmdt(scoresTab);
+        msg.code = FIN_DE_PARTIE;
+        for (int i = 0; i < nbPlayers; ++i)
+        {
+            swrite(tabPlayers[i].pipefdServeur[1], &msg, sizeof(msg));
+        }
+
+
+
+        // TODO
+        // winner(tabPlayers[0], tabPlayers[1], winnerName);
+        printf("GAGNANT : %s\n", winnerName);
+        disconnect_players(tabPlayers, nbPlayers);
+        closeIPC();
+        sclose(sockfd);
+
+        // libérer les pipes
+        for(int i = 0; i < nbPlayers; i++) {
+            free(tabPlayers[i].pipefdServeur);
+            free(tabPlayers[i].pipefdClient);
+        }
+        return 0;
     }
 
     return 0;
