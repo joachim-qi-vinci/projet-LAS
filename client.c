@@ -45,6 +45,7 @@ int main(int argc, char const *argv[])
             {
                 printf("La partie est terminée\n");
                 printf("%s", msg.messageText);
+
                 break;
             }
             if (msg.code == PARTIE_LANCEE)

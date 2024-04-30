@@ -1,7 +1,7 @@
 #include "server.h"
 #include "network.h"
 #include "ipc.h"
-#include  "game.h" 
+#include "game.h"
 
 /*** globals variables ***/
 Player tabPlayers[MAX_PLAYERS];
@@ -30,9 +30,10 @@ void SIGINTHandler(int sig)
     }
     closeIPC();
     disconnect_players(tabPlayers, nbPlayers);
-    for(int i = 0; i < nbPlayers; i++) {
+    for (int i = 0; i < nbPlayers; i++)
+    {
         free(tabPlayers[i].pipefdServeur);
-         free(tabPlayers[i].pipefdClient);
+        free(tabPlayers[i].pipefdClient);
     }
     exit(0);
 }
@@ -93,25 +94,27 @@ void childHandler(void *param)
                         swrite(player->sockfd, &message, sizeof(message));
                     }
 
-                    if(message.code == DEMANDER_SCORE){
+                    if (message.code == DEMANDER_SCORE)
+                    {
                         swrite(player->sockfd, &message, sizeof(message));
                     }
 
-                    if(message.code == FIN_DE_PARTIE){
-                        Player* scoresTabSorted = getScoresTab();
+                    if (message.code == FIN_DE_PARTIE)
+                    {
+                        Player *scoresTabSorted = getScoresTab();
                         char classement[MAX_LENGTH_CLASSEMENT];
                         sprintf(classement, "[\n");
                         for (int i = 0; i < nbPlayers; ++i)
-                        {   
+                        {
                             char playerScore[10];
                             char number[10];
                             sprintf(playerScore, "%d", scoresTabSorted[i].score);
                             sprintf(number, "%d", i);
                             strcat(classement, number);
-                            strcat(classement, " -> "); // Convertit le score en une chaîne de caractères
+                            strcat(classement, " -> ");                    // Convertit le score en une chaîne de caractères
                             strcat(classement, scoresTabSorted[i].pseudo); // Ajoute le pseudo du joueur
-                            strcat(classement, " : "); // Ajoute un séparateur
-                            strcat(classement, playerScore); // Ajoute le score du joueur
+                            strcat(classement, " : ");                     // Ajoute un séparateur
+                            strcat(classement, playerScore);               // Ajoute le score du joueur
                             strcat(classement, "\n");
                         }
                         strcpy(message.messageText, classement);
@@ -125,7 +128,8 @@ void childHandler(void *param)
                         swrite(player->pipefdClient[1], &message, sizeof(message));
                     }
 
-                    if(message.code == NOTER_SCORE){
+                    if (message.code == NOTER_SCORE)
+                    {
                         swrite(player->pipefdClient[1], &message, sizeof(message));
                     }
                 }
@@ -172,7 +176,7 @@ int main(int argc, char **argv)
     {
         /* client trt */
         newsockfd = accept(sockfd, NULL, NULL);
-        if (newsockfd > 0)                     
+        if (newsockfd > 0)
         {
             ret = sread(newsockfd, &msg, sizeof(msg));
 
@@ -313,7 +317,6 @@ int main(int argc, char **argv)
             nbPlayersAlreadyPlayed = 0;
             continue;
         }
-
         int scoresReceived = 0;
         createScoresTab(nbPlayers);
         msg.code = DEMANDER_SCORE;
@@ -328,42 +331,43 @@ int main(int argc, char **argv)
             fds[nbPlayers + i].events = POLLIN;
         }
 
-            while (scoresReceived < nbPlayers)
+        while (scoresReceived < nbPlayers)
+        {
+            ret = poll(fds, nbPlayers * 2, 1000);
+            if (ret == -1)
             {
-                ret = poll(fds, nbPlayers * 2, 1000);
-                if (ret == -1)
+                perror("poll");
+                exit(EXIT_FAILURE);
+            }
+            else if (ret == 0)
+            {
+                continue;
+            }
+            else
+            {
+                for (int i = 0; i < nbPlayers * 2; ++i)
                 {
-                    perror("poll");
-                    exit(EXIT_FAILURE);
-                }
-                else if (ret == 0)
-                {
-                    continue;
-                }
-                else
-                {
-                    for (int i = 0; i < nbPlayers * 2; ++i)
-                    {
- 
-                        if (fds[i].revents & POLLIN)
-                        {
-                            int playerIndex = i % nbPlayers;
 
-                            ret = sread(tabPlayers[playerIndex].pipefdClient[0], &msg, sizeof(msg));
-                            if (ret != 0)
+                    if (fds[i].revents & POLLIN)
+                    {
+                        int playerIndex = i % nbPlayers;
+
+                        ret = sread(tabPlayers[playerIndex].pipefdClient[0], &msg, sizeof(msg));
+                        if (ret != 0)
+                        {
+                            if (msg.code == NOTER_SCORE)
                             {
-                                if(msg.code == NOTER_SCORE){
-                                    tabPlayers[i].score = atoi(msg.messageText);
-                                    placeScore(tabPlayers[i], scoresReceived);
-                                    scoresReceived++;
-                                } 
+                                tabPlayers[i].score = atoi(msg.messageText);
+                                placeScore(tabPlayers[i], scoresReceived);
+                                scoresReceived++;
                             }
                         }
                     }
                 }
             }
+        }
 
-        Player* scoresTab = getScoresTab();
+        Player *scoresTab = getScoresTab();
         sortTabScores(&scoresTab, nbPlayers);
         sshmdt(scoresTab);
         msg.code = FIN_DE_PARTIE;
@@ -378,7 +382,8 @@ int main(int argc, char **argv)
         closeIPC();
         sclose(sockfd);
 
-        for(int i = 0; i < nbPlayers; i++) {
+        for (int i = 0; i < nbPlayers; i++)
+        {
             free(tabPlayers[i].pipefdServeur);
             free(tabPlayers[i].pipefdClient);
         }
