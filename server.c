@@ -35,7 +35,6 @@ void SIGINTHandler(int sig) {
 
 void childHandler(void *param) {
     Player *player = (Player *) param;
-
     sclose(player->pipefdServeur[1]);
     sclose(player->pipefdClient[0]);
 
@@ -44,15 +43,6 @@ void childHandler(void *param) {
     sread(player->pipefdServeur[0], &message, sizeof(message));
     swrite(player->sockfd, &message, sizeof(message));
 
-    while(!end_game){
-        int tile;
-        sread(player->pipefdServeur[0], &tile, sizeof(tile));
-        printf("%d de %d", tile, getpid());
-        StructMessage tileMessage;
-        tileMessage.code = NOUVELLE_TUILE;
-        sprintf(tileMessage.messageText, "%d", tile);
-        swrite(player->sockfd, &tileMessage, sizeof(tileMessage));
-    }
     // while(!end_game){
     //     printf("DANS LA BOUCLE!!\n");
     //     int tile;
