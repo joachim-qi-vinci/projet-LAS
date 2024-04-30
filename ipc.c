@@ -15,21 +15,26 @@ void createScoresTab(int nbr_player) {
 
 
 void placeScore(Player player, int logical_size) {
-    sem_down0(sem_id);
-    Player* tabPlayer = sshmat(shm_id);
+    int sem_id_sem = sem_get(SEM_KEY, 1);
+    int shm_id_ipc = sshmget(SHM_KEY, sizeof(int), 0);
+    sem_down0(sem_id_sem);
+    Player* tabPlayer = sshmat(shm_id_ipc);
     tabPlayer[logical_size] = player;
-    sem_up0(sem_id);
+    sem_up0(sem_id_sem);
     sshmdt(tabPlayer);
 }
 
 void closeIPC() {
-    Player* tabPlayer = sshmat(shm_id);
+    int shm_id_ipc = sshmget(SHM_KEY, sizeof(int), 0);
+    int sem_id_sem = sem_get(SEM_KEY, 1);
+    Player* tabPlayer = sshmat(shm_id_ipc);
     free(tabPlayer);
-    sshmdelete(shm_id);
-    sem_delete(sem_id);
+    sshmdelete(shm_id_ipc);
+    sem_delete(sem_id_sem);
 }
 
 Player* getScoresTab(){
-    Player* tabPlayer = sshmat(shm_id);
+    int shm_id_ipc = sshmget(SHM_KEY, sizeof(int), 0);
+    Player* tabPlayer = sshmat(shm_id_ipc);
     return tabPlayer;
 }
