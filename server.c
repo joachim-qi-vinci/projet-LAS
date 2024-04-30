@@ -97,7 +97,6 @@ void childHandler(void *param)
                     if (message.code == TUILE_PLACEE)
                     {
                         printf("Child %s - TUILE_PLACEE\n", player->pseudo);
-                        message.code = NOUVELLE_TUILE;
                         // Envoie au serveur qu'il faut une nouvelle tuile
                         swrite(player->pipefdClient[1], &message, sizeof(message));
                         printf("Child %s - WRITE\n", player->pseudo);
@@ -199,7 +198,8 @@ int main(int argc, char **argv)
         msg.code = PARTIE_LANCEE;
         createScoresTab(nbPlayers);
 
-        for (int i = 0; i < nbPlayers; i++) {
+        for (int i = 0; i < nbPlayers; i++)
+        {
             int pipefdServeur[2];
             int pipefdClient[2];
 
@@ -213,7 +213,6 @@ int main(int argc, char **argv)
             tabPlayers[i].pipefdServeur[1] = pipefdServeur[1];
             tabPlayers[i].pipefdClient[0] = pipefdClient[0];
             tabPlayers[i].pipefdClient[1] = pipefdClient[1];
-
 
             fork_and_run1(childHandler, &tabPlayers[i]);
 
@@ -243,38 +242,53 @@ int main(int argc, char **argv)
                 swrite(tabPlayers[j].pipefdServeur[1], &msg, sizeof(msg));
             }
 
-            // Attendre que chaque joueur place sa tuile
+            // Ajouter tous les tubes pipefdClient à l'ensemble des descripteurs surveillés
             for (int i = 0; i < nbPlayers; ++i)
             {
-                while (1)
+                fds[nbPlayers + i].fd = tabPlayers[i].pipefdClient[0];
+                fds[nbPlayers + i].events = POLLIN;
+            }
+
+            // Attendre que tous les joueurs aient placé leur tuile
+            while (nbPlayersAlreadyPlayed < nbPlayers)
+            {
+                // Attendre jusqu'à une seconde pour les données à lire sur n'importe quel descripteur surveillé
+                ret = poll(fds, nbPlayers * 2, 1000);
+                if (ret == -1)
                 {
-                    ret = poll(&fds[i], 1, 1000);
-                    if (ret == -1)
+                    perror("poll");
+                    exit(EXIT_FAILURE);
+                }
+                else if (ret == 0)
+                {
+                    // Aucune donnée à lire sur aucun descripteur surveillé, continuer à la prochaine itération
+                    continue;
+                }
+                else
+                {
+                    // Parcourir tous les descripteurs surveillés
+                    for (int i = 0; i < nbPlayers * 2; ++i)
                     {
-                        perror("poll");
-                        exit(EXIT_FAILURE);
-                    }
-                    else if (ret == 0)
-                    {
-                        printf("Le joueur %s n'a pas encore placé sa tuile\n", tabPlayers[i].pseudo);
-                        continue;
-                    }
-                    else
-                    {
-                        // Vérifier s'il y a des données à lire sur le tube du joueur
+                        // Vérifier s'il y a des données à lire sur ce descripteur surveillé
                         if (fds[i].revents & POLLIN)
                         {
-                            ret = sread(tabPlayers[i].pipefdClient[0], &msg, sizeof(msg));
+                            // Trouver le joueur correspondant au descripteur surveillé
+                            int playerIndex = i % nbPlayers;
+
+                            // Lire les données depuis le tube du joueur
+                            ret = sread(tabPlayers[playerIndex].pipefdClient[0], &msg, sizeof(msg));
                             if (ret != 0)
                             {
                                 if (msg.code == TUILE_PLACEE)
                                 {
-                                    printf("Le joueur %s a placé sa tuile\n", tabPlayers[i].pseudo);
+                                    printf("Nombre qui a déjà joué = %d\n", nbPlayersAlreadyPlayed);
+                                    printf("Le joueur %s a placé sa tuile\n", tabPlayers[playerIndex].pseudo);
                                     nbPlayersAlreadyPlayed++;
+                                    printf("Nombre qui a déjà joué = %d\n", nbPlayersAlreadyPlayed);
                                 }
                                 else if (msg.code == DEMANDER_SCORE)
                                 {
-                                    printf("Le joueur %s demande le score\n", tabPlayers[i].pseudo);
+                                    printf("Le joueur %s demande le score\n", tabPlayers[playerIndex].pseudo);
                                     // Gérer la demande de score ici
                                 }
                             }
@@ -282,8 +296,9 @@ int main(int argc, char **argv)
                     }
                 }
             }
-
-            // TODO
+            
+        }
+        // TODO
             // winner(tabPlayers[0], tabPlayers[1], winnerName);
             printf("GAGNANT : %s\n", winnerName);
             disconnect_players(tabPlayers, nbPlayers);
@@ -291,12 +306,12 @@ int main(int argc, char **argv)
             sclose(sockfd);
 
             // libérer les pipes
-            for(int i = 0; i < nbPlayers; i++) {
+            for (int i = 0; i < nbPlayers; i++)
+            {
                 free(tabPlayers[i].pipefdServeur);
                 free(tabPlayers[i].pipefdClient);
             }
             return 0;
-        }
     }
 
     return 0;
