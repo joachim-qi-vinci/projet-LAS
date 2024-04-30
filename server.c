@@ -290,6 +290,7 @@ int main(int argc, char **argv)
                                     printf("Le joueur %s a placé sa tuile\n", tabPlayers[playerIndex].pseudo);
                                     nbPlayersAlreadyPlayed++;
                                     printf("Nombre qui a déjà joué = %d\n", nbPlayersAlreadyPlayed);
+                                    msg.code = NOUVELLE_TUILE;
                                 }
                                 else if (msg.code == DEMANDER_SCORE)
                                 {
@@ -301,7 +302,7 @@ int main(int argc, char **argv)
                         }
                     }
                 }
-            msg.code = NOUVELLE_TUILE;
+            
             }
             
         }
