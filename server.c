@@ -123,7 +123,6 @@ void childHandler(void *param)
                     if (message.code == TUILE_PLACEE)
                     {
                         swrite(player->pipefdClient[1], &message, sizeof(message));
-                        printf("Child %s - WRITE\n", player->pseudo);
                     }
 
                     if(message.code == NOTER_SCORE){
