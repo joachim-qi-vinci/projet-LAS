@@ -319,6 +319,7 @@ int main(int argc, char **argv)
                                     printf("Le joueur %s a placé sa tuile\n", tabPlayers[playerIndex].pseudo);
                                     nbPlayersAlreadyPlayed++;
                                     printf("Nombre qui a déjà joué = %d\n", nbPlayersAlreadyPlayed);
+                                    msg.code = NOUVELLE_TUILE;
                                 }
                             }
                         }
