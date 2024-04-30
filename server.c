@@ -32,38 +32,94 @@ void SIGINTHandler(int sig)
     exit(0);
 }
 
+void childHandler(void *param) {
+    Player *player = (Player *)param;
+    printf("CHILD %s\n", player->pseudo);
+    StructMessage message;
+    struct pollfd fds[2];
+
+    // Initialisation de la structure pollfd pour pipeServeur
+    fds[0].fd = player->pipefdServeur[0];
+    fds[0].events = POLLIN;
+
+    // Initialisation de la structure pollfd pour socketfd
+    fds[1].fd = player->sockfd;
+    fds[1].events = POLLIN;
+
+    while (1) {
+        if (poll(fds, 2, -1) == -1) {
+            perror("poll");
+            exit(EXIT_FAILURE);
+        }
+
+        for (int i = 0; i < 2; ++i) {
+            if (fds[i].revents & POLLIN) {
+                ssize_t bytes_read = read(fds[i].fd, &message, sizeof(message));
+                if (bytes_read == -1) {
+                    perror("read");
+                    exit(EXIT_FAILURE);
+                } else if (bytes_read == 0) {
+                    // Fin de fichier ou connexion fermée
+                    // Traitez ici en fonction de votre logique
+                    continue;
+                }
+
+                printf("CHILD MESSAGE.CODE = %d\n", message.code);
+                if (fds[i].fd == player->pipefdServeur[0]) {
+                    // Lecture depuis pipeServeur
+                    if (message.code == PARTIE_LANCEE) {
+                        printf("Partie lancée pour %s!\n", player->pseudo);
+                        sclose(player->pipefdServeur[1]);
+                        sclose(player->pipefdClient[0]);
+                        swrite(player->sockfd, &message, sizeof(message));
+                    }
+
+                    if (message.code == NOUVELLE_TUILE) {
+                        printf("Child %s - NOUVELLE_TUILE\n", player->pseudo);
+                        swrite(player->sockfd, &message, sizeof(message));
+                        printf("Child %s - WRITE\n", player->pseudo);
+                    }
+                } else if (fds[i].fd == player->sockfd) {
+                    // Lecture depuis socketfd
+                    if (message.code == TUILE_PLACEE) {
+                        printf("Child %s - TUILE_PLACEE\n", player->pseudo);
+                        // Traitement du message TUILE_PLACEE
+                        swrite(player->pipefdClient[1], &message, sizeof(message));
+                        printf("Child %s - WRITE\n", player->pseudo);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*
 void childHandler(void *param)
 {
     Player *player = (Player *)param;
     printf("CHILD %s\n", player->pseudo);
     StructMessage message;
-    sread(player->pipefdServeur[0], &message, sizeof(message));
-    printf("CHILD MESSAGE.CODE = %d\n", message.code);
-    if (message.code == PARTIE_LANCEE)
+    while (sread(player->pipefdServeur[0], &message, sizeof(message)) > 0)
     {
-        printf("Partie lancée !\n");
-        sclose(player->pipefdServeur[1]);
-        sclose(player->pipefdClient[0]);
-        swrite(player->sockfd, &message, sizeof(message));
-    }
+        printf("CHILD MESSAGE.CODE = %d\n", message.code);
+        if (message.code == PARTIE_LANCEE)
+        {
+            printf("Partie lancée pour %s!\n", player->pseudo);
+            sclose(player->pipefdServeur[1]);
+            sclose(player->pipefdClient[0]);
+            swrite(player->sockfd, &message, sizeof(message));
+        }
 
-    if (message.code == NOUVELLE_TUILE)
-    {
-        printf("Child %s - NOUVELLE_TUILE\n", player->pseudo);
-        swrite(player->sockfd, &message, sizeof(message));
+        if (message.code == NOUVELLE_TUILE)
+        {
+            printf("Child %s - NOUVELLE_TUILE\n", player->pseudo);
+            swrite(player->sockfd, &message, sizeof(message));
+            printf("Child %s - WRITE\n", player->pseudo);
+        }
     }
-
-    // printf("Dans le child\n");
-    // while (sread(player->pipefdServeur[0], &message, sizeof(message)))
-    // {
-    //     printf("message.code = %d\n", message.code);
-    //     if (message.code == NOUVELLE_TUILE)
-    //     {
-    //         printf("Child %s - NOUVELLE_TUILE\n", player->pseudo);
-    //         swrite(player->sockfd, &message, sizeof(message));
-    //     }
-    // }
+    
 }
+*/
 
 int main(int argc, char **argv)
 {
@@ -161,7 +217,6 @@ int main(int argc, char **argv)
     {
         printf("PARTIE VA DEMARRER ... \n");
         msg.code = PARTIE_LANCEE;
-        printf("msg.code = %d\n", msg.code);
         createScoresTab(nbPLayers);
 
         for (int i = 0; i < nbPLayers; i++)
@@ -188,20 +243,18 @@ int main(int argc, char **argv)
             fds[i].fd = tabPlayers[i].sockfd;
             fds[i].events = POLLIN;
         }
-        printf("HELLO HELLO\n");
-
+        printf("TIRAGE DE LA TUILE\n");
+        msg.code = NOUVELLE_TUILE;
+        printf("msg.code = %d\n", msg.code);
         for (int i = 0; i < NB_GAME; ++i)
         {
             int tile = drawTile();
             sprintf(msg.messageText, "%d", tile);
-            msg.code = NOUVELLE_TUILE;
-            printf("SERVER 181 TEXT = %s\n", msg.messageText);
-            printf("SERVER 182 TEXT = %s\n", msg.messageText);
+            printf("msg.messageText = %s\n", msg.messageText);
 
             for (int j = 0; j < nbPLayers; ++j)
             {
                 swrite(tabPlayers[j].pipefdServeur[1], &msg, sizeof(msg));
-                printf("SERVER 185 = WRITE\n");
             }
 
             // loop end_game
@@ -212,7 +265,9 @@ int main(int argc, char **argv)
                 checkNeg(ret, "server poll error");
 
                 if (ret == 0)
+                {
                     continue;
+                }
 
                 // check player something to read
                 for (int k = 0; k < nbPLayers; k++)
