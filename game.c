@@ -46,6 +46,7 @@ void createTilesTab() {
 }
 
 void createPlateau(){
+    printf("Création du plateau\n");
     plateau = smalloc(PLATEAU_LENGTH * sizeof(int));
     for(int i = 0; i < PLATEAU_LENGTH; i++){
         plateau[i] = 0;

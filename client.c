@@ -54,10 +54,13 @@ int main(int argc, char const *argv[])
 
             if(msg.code == PARTIE_ANNULEE){
                 printf("La partie est annulée\n");
-                break;
+                exit(1);
             }
+
             if(msg.code == NOUVELLE_TUILE){
+                printf("Nouvelle tuile\n");
                 displayPlateau();
+                /*
                 int tile = atoi(msg.messageText);
                 printf("La prochaine tuile est: %d\n", tile);
                 int position;
@@ -66,6 +69,7 @@ int main(int argc, char const *argv[])
                 placeTile(position, tile);
                 printf("Tuile placée\nEn attente des autres joueurs...\n");
                 printf("TODO: Notifier le serveur que la tuile a été placée\n");
+                */
             }
             if(msg.code == DEMANDER_SCORE){
                 displayPlateau();
