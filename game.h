@@ -5,6 +5,7 @@
 #include "messages.h"
 
 #define NB_GAME 20
+#define MAX_LENGTH_CLASSEMENT 500
 
 /**
  * Create the table with chars from 1 to 30 where 11 to 19 is
@@ -59,7 +60,7 @@ void sendScore();
  * playerTab is the adress of a table
  * playertab is sorted
 **/
-void sortTabScores(Player* playerTab);
+void sortTabScores(Player** playerTab, int size);
 
 /**
  * Free the tiles table

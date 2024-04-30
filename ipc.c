@@ -28,3 +28,8 @@ void closeIPC() {
     sshmdelete(shm_id);
     sem_delete(sem_id);
 }
+
+Player* getScoresTab(){
+    Player* tabPlayer = sshmat(shm_id);
+    return tabPlayer;
+}

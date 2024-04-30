@@ -15,4 +15,6 @@ void placeScore(Player player, int logical_size);
 
 void closeIPC();
 
+Player* getScoresTab();
+
 #endif
