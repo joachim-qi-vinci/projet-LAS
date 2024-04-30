@@ -90,6 +90,11 @@ void childHandler(void *param)
                         swrite(player->sockfd, &message, sizeof(message));
                         printf("Child %s - WRITE\n", player->pseudo);
                     }
+
+                    if(message.code == DEMANDER_SCORE){
+                        printf("Child %s - DEMANDER_SCORE\n", player->pseudo);
+                        swrite(player->sockfd, &message, sizeof(message));
+                    }
                 }
                 else if (fds[i].fd == player->sockfd)
                 {
@@ -197,7 +202,6 @@ int main(int argc, char **argv)
     {
         printf("PARTIE VA DEMARRER ... \n");
         msg.code = PARTIE_LANCEE;
-        createScoresTab(nbPlayers);
 
         for (int i = 0; i < nbPlayers; i++) {
             int pipefdServeur[2];
@@ -292,6 +296,13 @@ int main(int argc, char **argv)
             sclose(sockfd);
             return 0;
         }
+        createScoresTab(nbPlayers);
+        msg.code = DEMANDER_SCORE;
+        for (int i = 0; i < nbPlayers; ++i)
+        {
+            swrite(tabPlayers[i].pipefdServeur[1], &msg, sizeof(msg));
+        }
+
     }
 
     return 0;
