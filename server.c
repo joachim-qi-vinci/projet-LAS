@@ -207,7 +207,7 @@ int main(int argc, char **argv)
 
             spipe(pipefdServeur);
             spipe(pipefdClient);
-        
+
             tabPlayers[i].pipefdServeur = pipefdServeur;
             tabPlayers[i].pipefdClient = pipefdClient;
 
@@ -236,9 +236,11 @@ int main(int argc, char **argv)
             sprintf(msg.messageText, "%d", tile);
             printf("msg.messageText = %s\n", msg.messageText);
 
-            for (int j = 0; j < nbPlayers; ++j)
+            for (int i = 0; i < nbPlayers; i++)
             {
-                swrite(tabPlayers[j].pipefdServeur[1], &msg, sizeof(msg));
+                // Écrivez le message 202 sur le pipefdServeur du client actuel
+                swrite(tabPlayers[i].pipefdServeur[1], &msg, sizeof(msg));
+                printf("envoi de la tuile sur pipe n° %d \n", tabPlayers[i].pipefdServeur[1])
             }
 
             // Attendre que chaque joueur place sa tuile
