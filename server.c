@@ -53,6 +53,15 @@ void childHandler(void *param) {
         sprintf(tileMessage.messageText, "%d", tile);
         swrite(player->sockfd, &tileMessage, sizeof(tileMessage));
     }
+    // while(!end_game){
+    //     printf("DANS LA BOUCLE!!\n");
+    //     int tile;
+    //     sread(player->pipefdServeur[0], &tile, sizeof(tile));
+    //     printf("UNE TUILE = %d\n", tile);
+    //     StructMessage tileMessage;
+    //     tileMessage.code = NOUVELLE_TUILE;
+    //     swrite(player->sockfd, &tileMessage, sizeof(tileMessage));
+    // }
 }
 
 
@@ -175,7 +184,8 @@ int main(int argc, char **argv)
                 fds[i].fd = tabPlayers[i].sockfd;
                 fds[i].events = POLLIN;
             }
-
+            printf("HELLO HELLO\n");
+   
             for (int i = 0; i < NB_GAME; ++i){
 
                 int tile = drawTile();
